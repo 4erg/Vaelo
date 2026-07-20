@@ -1,0 +1,11 @@
+{
+  "title": "VAELO",
+  "description": "Aplicaciones IPTV white-label para Android, Smart TV, iOS, Windows y web.",
+  "language": "es",
+  "icons": {
+    "icon": "/imgs/vaelo_icono.png"
+  },
+  "robots": {
+    "index": false
+  }
+}
