@@ -1312,34 +1312,53 @@ function QuoteForm() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const data = new FormData(e.currentTarget)
+    const submittedForm = {
+      ...form,
+      name: String(data.get('name') ?? form.name),
+      company: String(data.get('company') ?? form.company),
+      country: String(data.get('country') ?? form.country),
+      whatsapp: String(data.get('whatsapp') ?? form.whatsapp),
+      email: String(data.get('email') ?? form.email),
+      clients: String(data.get('clients') ?? form.clients),
+      iptv_panel: String(data.get('iptv_panel') ?? form.iptv_panel),
+      store_publish: String(data.get('store_publish') ?? form.store_publish),
+      admin_panel: String(data.get('admin_panel') ?? form.admin_panel),
+      budget: String(data.get('budget') ?? form.budget),
+      description: String(data.get('description') ?? form.description),
+    }
     const quote = saveLocalQuote({
-      name: form.name || 'Sin nombre',
-      company: form.company || 'Sin empresa',
-      country: form.country,
-      email: form.email,
-      whatsapp: form.whatsapp,
-      clients: form.clients,
-      platforms: form.platforms,
-      iptv_panel: form.iptv_panel,
-      store_publish: form.store_publish,
-      admin_panel: form.admin_panel,
-      budget: form.budget,
-      description: form.description,
+      name: submittedForm.name || 'Sin nombre',
+      company: submittedForm.company || 'Sin empresa',
+      country: submittedForm.country,
+      email: submittedForm.email,
+      whatsapp: submittedForm.whatsapp,
+      clients: submittedForm.clients,
+      platforms: submittedForm.platforms,
+      iptv_panel: submittedForm.iptv_panel,
+      store_publish: submittedForm.store_publish,
+      admin_panel: submittedForm.admin_panel,
+      budget: submittedForm.budget,
+      description: submittedForm.description,
       estimatedTotal,
     })
     const message = [
       `Hola, quiero una cotización IPTV (${quote.id}).`,
-      `Nombre: ${form.name}`,
-      `Empresa: ${form.company}`,
-      `País: ${form.country}`,
-      `WhatsApp: ${form.whatsapp}`,
-      `Email: ${form.email}`,
+      `Nombre: ${submittedForm.name}`,
+      `Empresa: ${submittedForm.company}`,
+      `País: ${submittedForm.country}`,
+      `WhatsApp: ${submittedForm.whatsapp}`,
+      `Email: ${submittedForm.email}`,
       `Plataformas: ${selectedPlatforms.map(p => p.name).join(', ') || 'Por definir'}`,
       `Total estimado: US$${estimatedTotal}`,
-      `Panel IPTV: ${form.iptv_panel || 'Por definir'}`,
-      `Descripción: ${form.description || 'Sin detalles adicionales'}`,
+      `Clientes aproximados: ${submittedForm.clients || 'Por definir'}`,
+      `Panel IPTV: ${submittedForm.iptv_panel || 'Por definir'}`,
+      `Publicación en tiendas: ${submittedForm.store_publish || 'Por definir'}`,
+      `Panel de administración: ${submittedForm.admin_panel || 'Por definir'}`,
+      `Presupuesto: ${submittedForm.budget || 'Por definir'}`,
+      `Descripción: ${submittedForm.description || 'Sin detalles adicionales'}`,
     ].join('\n')
     setWhatsappUrl(`https://wa.me/?text=${encodeURIComponent(message)}`)
     setSent(true)
@@ -1396,6 +1415,7 @@ function QuoteForm() {
               <div key={key}>
                 <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>{label}</label>
                 <input
+                  name={key}
                   type={type}
                   placeholder={placeholder}
                   value={(form as Record<string, string>)[key]}
@@ -1447,6 +1467,7 @@ function QuoteForm() {
               <div key={key}>
                 <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>{label}</label>
                 <input
+                  name={key}
                   type="text"
                   placeholder={placeholder}
                   value={(form as Record<string, string>)[key]}
@@ -1468,6 +1489,7 @@ function QuoteForm() {
               <div key={key}>
                 <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>{label}</label>
                 <select
+                  name={key}
                   value={(form as Record<string, string>)[key]}
                   onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                   className="w-full rounded-xl px-4 py-2.5 text-sm outline-none"
@@ -1487,6 +1509,7 @@ function QuoteForm() {
           <div>
             <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>Descripción del proyecto</label>
             <textarea
+              name="description"
               rows={4}
               placeholder="Cuéntanos más sobre tu proyecto, tus objetivos y cualquier detalle adicional..."
               value={form.description}
