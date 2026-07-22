@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -200,6 +200,7 @@ const ADDITIONAL_SERVICES = [
 
 const ADMIN_SESSION_KEY = 'vaelo_admin_session'
 const LOCAL_DB_KEY = 'vaelo_local_db'
+const QUOTE_DRAFT_KEY = 'vaelo_quote_draft'
 
 type LocalAdmin = {
   email: string
@@ -217,14 +218,30 @@ type LocalQuote = {
   whatsapp: string
   clients?: string
   platforms: string[]
+  services?: string[]
   iptv_panel?: string
   store_publish?: string
   admin_panel?: string
   budget?: string
   description?: string
+  appName?: string
+  website?: string
+  desiredDelivery?: string
+  logoName?: string
+  subtotal?: number
+  discountAmount?: number
+  monthlyTotal?: number
+  oneTimeTotal?: number
+  suggestedDeposit?: number
+  remainingBalance?: number
   status: string
   createdAt: string
   estimatedTotal: number
+}
+
+type DiscountRule = {
+  minPlatforms: number
+  discountPct: number
 }
 
 type LocalDb = {
@@ -232,6 +249,7 @@ type LocalDb = {
   quotes: LocalQuote[]
   platformPrices: Record<string, number>
   services: { name: string; price: string; enabled: boolean }[]
+  discountRules: DiscountRule[]
   contactSettings: {
     email: string
     whatsapp: string
@@ -239,6 +257,29 @@ type LocalDb = {
     responseTime: string
   }
 }
+
+type QuoteFormState = {
+  name: string
+  company: string
+  country: string
+  email: string
+  whatsapp: string
+  appName: string
+  website: string
+  clients: string
+  platforms: string[]
+  services: string[]
+  iptv_panel: string
+  store_publish: string
+  admin_panel: string
+  budget: string
+  desiredDelivery: string
+  description: string
+  privacyAccepted: boolean
+  logoName: string
+}
+
+type QuoteTextFieldKey = Exclude<keyof QuoteFormState, 'platforms' | 'services' | 'privacyAccepted'>
 
 const PLATFORM_SLUGS: Record<string, string> = {
   android: 'android',
@@ -272,6 +313,140 @@ function getPlatformBySlug(slug: string) {
   return getManagedPlatforms().find(platform => PLATFORM_SLUGS[platform.id] === slug)
 }
 
+function getPlatformCategory(id: string) {
+  if (id.includes('tv') || ['samsung', 'lg', 'vidaa', 'titan'].includes(id)) return 'Smart TV'
+  if (id === 'web') return 'Web'
+  if (id === 'windows') return 'Escritorio'
+  return 'Movil'
+}
+
+function getPlatformTimeline(id: string) {
+  if (['samsung', 'lg'].includes(id)) return '6 a 9 semanas'
+  if (['vidaa', 'titan'].includes(id)) return '5 a 7 semanas'
+  if (id === 'ios') return '5 a 8 semanas'
+  if (id === 'web') return '3 a 5 semanas'
+  return '4 a 6 semanas'
+}
+
+function getPlatformPublishing(id: string) {
+  if (id === 'android') return ['APK directa', 'Google Play opcional']
+  if (id === 'androidtv') return ['APK para TV/box', 'Google Play opcional']
+  if (id === 'ios') return ['App Store', 'Distribucion privada o TestFlight']
+  if (id === 'windows') return ['Instalador EXE/MSIX', 'Distribucion directa']
+  if (id === 'web') return ['Dominio propio', 'Hosting administrado opcional']
+  if (id === 'samsung') return ['Samsung Seller Office', 'Carga por certificado']
+  if (id === 'lg') return ['LG Seller Lounge', 'Distribucion por tienda']
+  if (id === 'vidaa') return ['Tienda VIDAA', 'Evaluacion por fabricante']
+  return ['Distribucion por plataforma', 'Revision tecnica previa']
+}
+
+function getPlatformRequirements(platform: typeof PLATFORMS[0]) {
+  return [
+    'Nombre comercial definitivo y version de marca.',
+    'Logotipo en buena resolucion y colores corporativos.',
+    `Accesos tecnicos o documentacion del servidor para ${platform.name}.`,
+    'Definicion de secciones clave: canales, peliculas, series, soporte y contacto.',
+  ]
+}
+
+function getPlatformFaq(platform: typeof PLATFORMS[0]) {
+  return [
+    {
+      q: `La aplicacion de ${platform.name} queda con mi marca?`,
+      a: 'Si. El entregable se adapta a tu nombre, icono, colores y estructura base de contenido.',
+    },
+    {
+      q: 'El precio incluye publicacion en tienda?',
+      a: 'No siempre. La publicacion puede requerir un servicio adicional y cuentas externas a nombre del cliente.',
+    },
+    {
+      q: 'Puedo sumar otras plataformas despues?',
+      a: 'Si. Podemos empezar con una plataforma y extender el mismo proyecto a otras compatibles.',
+    },
+  ]
+}
+
+function getRecommendedServicesForPlatform(platform: typeof PLATFORMS[0]) {
+  const services = getManagedServices().slice(0, 6)
+  return services.filter(service => {
+    if (platform.id === 'web') return !service.name.toLowerCase().includes('app store')
+    if (platform.id === 'windows') return !service.name.toLowerCase().includes('google play')
+    return true
+  }).slice(0, 4)
+}
+
+function defaultDiscountRules(): DiscountRule[] {
+  return [
+    { minPlatforms: 2, discountPct: 5 },
+    { minPlatforms: 3, discountPct: 8 },
+    { minPlatforms: 4, discountPct: 12 },
+    { minPlatforms: 5, discountPct: 15 },
+  ]
+}
+
+function parseServicePrice(price: string) {
+  const match = price.replace(',', '').match(/(\d+(?:\.\d+)?)/)
+  return match ? Number(match[1]) : 0
+}
+
+function isRecurringService(serviceName: string, price: string) {
+  const text = `${serviceName} ${price}`.toLowerCase()
+  return text.includes('/mes') || text.includes('mensual') || text.includes('/a') || text.includes('hosting')
+}
+
+function getAppliedDiscount(count: number, rules: DiscountRule[]) {
+  return rules
+    .filter(rule => count >= rule.minPlatforms)
+    .sort((a, b) => b.minPlatforms - a.minPlatforms)[0]?.discountPct ?? 0
+}
+
+function buildQuoteEstimate(platformIds: string[], serviceNames: string[]) {
+  const db = getLocalDb()
+  const platforms = getManagedPlatforms().filter(platform => platformIds.includes(platform.id))
+  const services = db.services.filter(service => service.enabled && serviceNames.includes(service.name))
+  const platformSubtotal = platforms.reduce((sum, platform) => sum + platform.price, 0)
+  const discountPct = getAppliedDiscount(platforms.length, db.discountRules)
+  const discountAmount = Math.round(platformSubtotal * (discountPct / 100))
+  const discountedPlatforms = platformSubtotal - discountAmount
+  const monthlyTotal = services
+    .filter(service => isRecurringService(service.name, service.price))
+    .reduce((sum, service) => sum + parseServicePrice(service.price), 0)
+  const oneTimeServices = services
+    .filter(service => !isRecurringService(service.name, service.price))
+    .reduce((sum, service) => sum + parseServicePrice(service.price), 0)
+  const oneTimeTotal = discountedPlatforms + oneTimeServices
+  const estimatedTotal = oneTimeTotal + monthlyTotal
+  const suggestedDeposit = Math.round(oneTimeTotal * 0.4)
+
+  return {
+    platforms,
+    services,
+    platformSubtotal,
+    discountPct,
+    discountAmount,
+    discountedPlatforms,
+    monthlyTotal,
+    oneTimeServices,
+    oneTimeTotal,
+    estimatedTotal,
+    suggestedDeposit,
+    remainingBalance: Math.max(oneTimeTotal - suggestedDeposit, 0),
+  }
+}
+
+function getQuoteDraft() {
+  const raw = sessionStorage.getItem(QUOTE_DRAFT_KEY)
+  return raw ? JSON.parse(raw) as { platforms: string[]; services: string[] } : null
+}
+
+function saveQuoteDraft(platforms: string[], services: string[]) {
+  sessionStorage.setItem(QUOTE_DRAFT_KEY, JSON.stringify({ platforms, services }))
+}
+
+function clearQuoteDraft() {
+  sessionStorage.removeItem(QUOTE_DRAFT_KEY)
+}
+
 function seedLocalDb(): LocalDb {
   const existing = localStorage.getItem(LOCAL_DB_KEY)
   if (existing) {
@@ -281,6 +456,7 @@ function seedLocalDb(): LocalDb {
       quotes: parsed.quotes ?? [],
       platformPrices: parsed.platformPrices ?? Object.fromEntries(PLATFORMS.map(platform => [platform.id, platform.price])),
       services: parsed.services ?? ADDITIONAL_SERVICES.map(service => ({ ...service, enabled: true })),
+      discountRules: parsed.discountRules ?? defaultDiscountRules(),
       contactSettings: parsed.contactSettings ?? {
         email: 'ventas@vaelo.com',
         whatsapp: '+51 999 999 999',
@@ -303,6 +479,7 @@ function seedLocalDb(): LocalDb {
     ],
     platformPrices: Object.fromEntries(PLATFORMS.map(platform => [platform.id, platform.price])),
     services: ADDITIONAL_SERVICES.map(service => ({ ...service, enabled: true })),
+    discountRules: defaultDiscountRules(),
     contactSettings: {
       email: 'ventas@vaelo.com',
       whatsapp: '+51 999 999 999',
@@ -317,8 +494,17 @@ function seedLocalDb(): LocalDb {
         email: 'carlos@mitv.com',
         whatsapp: '+52 55 1234 5678',
         platforms: ['androidtv', 'web', 'samsung'],
+        services: ['Panel de administraciÃ³n', 'Hosting'],
+        appName: 'MiTV GO',
+        website: 'https://mitv.example',
         status: 'Nuevo',
         createdAt: '2026-07-20',
+        subtotal: 1347,
+        discountAmount: 108,
+        oneTimeTotal: 1239,
+        monthlyTotal: 29,
+        suggestedDeposit: 495,
+        remainingBalance: 744,
         estimatedTotal: 1347,
       },
       {
@@ -328,8 +514,16 @@ function seedLocalDb(): LocalDb {
         email: 'ana@streamplus.com',
         whatsapp: '+51 999 888 777',
         platforms: ['android', 'ios'],
+        services: ['Notificaciones push'],
+        appName: 'Stream Plus',
         status: 'En revision',
         createdAt: '2026-07-19',
+        subtotal: 798,
+        discountAmount: 0,
+        oneTimeTotal: 798,
+        monthlyTotal: 0,
+        suggestedDeposit: 319,
+        remainingBalance: 479,
         estimatedTotal: 798,
       },
     ],
@@ -345,9 +539,13 @@ function getLocalDb(): LocalDb {
 
 function saveLocalQuote(quote: Omit<LocalQuote, 'id' | 'createdAt' | 'status'>) {
   const db = getLocalDb()
+  const nextNumber = db.quotes
+    .map(item => Number(item.id.replace(/[^0-9]/g, '')))
+    .filter(Number.isFinite)
+    .reduce((max, value) => Math.max(max, value), 1000) + 1
   const nextQuote: LocalQuote = {
     ...quote,
-    id: `Q-${Date.now().toString().slice(-6)}`,
+    id: `VAELO-Q-${nextNumber}`,
     status: 'Nuevo',
     createdAt: new Date().toISOString().slice(0, 10),
   }
@@ -394,6 +592,7 @@ function Navbar() {
     { label: 'Inicio', href: '/' },
     { label: 'Plataformas', href: '/plataformas' },
     { label: 'Personalización', href: '/personalizacion' },
+    { label: 'Servicios', href: '/servicios' },
     { label: 'Precios', href: '/precios' },
     { label: 'Proceso', href: '/proceso' },
     { label: 'FAQ', href: '/faq' },
@@ -412,16 +611,16 @@ function Navbar() {
         boxShadow: scrolled ? '0 2px 16px rgba(13,27,62,0.08)' : 'none',
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 flex items-center justify-between h-20">
         <Logo />
 
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="hidden xl:flex items-center gap-5">
           {links.map(l => (
             <a key={l.href} href={l.href} className="nav-link" style={navStyle(l.href)}>{l.label}</a>
           ))}
         </div>
 
-        <div className="hidden lg:block">
+        <div className="hidden xl:block">
           <div className="flex items-center gap-3">
             <a href="/admin/login" className="nav-link" style={pathname.startsWith('/admin') ? { color: '#2B7FFF' } : undefined}>Admin</a>
             <a href="/contacto" className="btn-primary px-5 py-2 rounded-lg text-sm text-white">
@@ -431,7 +630,7 @@ function Navbar() {
         </div>
 
         <button
-          className="lg:hidden p-2"
+          className="xl:hidden p-2"
           style={{ color: '#0D1B3E' }}
           onClick={() => setOpen(!open)}
           aria-label="Menu"
@@ -443,7 +642,7 @@ function Navbar() {
       </div>
 
       {open && (
-        <div className="lg:hidden border-t px-6 py-4 space-y-3" style={{ background: '#fff', borderColor: '#E8EEF8' }}>
+        <div className="xl:hidden border-t px-5 py-4 space-y-2 shadow-2xl" style={{ background: 'rgba(255,255,255,0.98)', borderColor: '#E8EEF8' }}>
           {links.map(l => (
             <a key={l.href} href={l.href} className="block nav-link py-2" style={navStyle(l.href)} onClick={() => setOpen(false)}>{l.label}</a>
           ))}
@@ -593,7 +792,7 @@ function Hero() {
               <span className="gradient-text">televisores, celulares y computadoras</span>
             </h1>
             <p className="text-lg mb-8 leading-relaxed hero-copy" style={{ color: '#4A5B7A', maxWidth: 520 }}>
-              Desarrollamos aplicaciones personalizadas con el nombre, logotipo, colores y funciones de tu empresa. Elige las plataformas que necesitas y arma tu propio paquete.
+              Desarrollamos aplicaciones personalizadas con el nombre, logotipo, colores y funciones de tu empresa. Elige las plataformas que necesitas y construye una solucion adaptada a tu negocio.
             </p>
             <div className="flex flex-wrap gap-4 hero-actions">
               <a href="/plataformas" className="btn-primary px-6 py-3 rounded-xl text-white text-sm">
@@ -604,7 +803,7 @@ function Hero() {
               </a>
             </div>
             <div className="flex gap-8 mt-12 pt-8 hero-stats" style={{ borderTop: '1.5px solid #E8EEF8' }}>
-              {[['9+', 'Plataformas'], ['100%', 'Personalizable'], ['24/7', 'Soporte']].map(([n, l]) => (
+              {[['9', 'Plataformas'], ['100%', 'Personalizable'], ['Soporte', 'Especializado'], ['Multi', 'Plataforma']].map(([n, l]) => (
                 <div key={l}>
                   <div className="font-display font-700 text-2xl gradient-text-blue">{n}</div>
                   <div className="text-sm mt-0.5" style={{ color: '#7A8BAA' }}>{l}</div>
@@ -621,39 +820,329 @@ function Hero() {
   )
 }
 
+function StrongDeviceMockup() {
+  return (
+    <div className="hero-visual-shell">
+      <div className="hero-visual-panel">
+        <div className="hero-visual-glow hero-visual-glow-a" />
+        <div className="hero-visual-glow hero-visual-glow-b" />
+        <div className="hero-visual-pattern" />
+
+        <div className="hero-floating-card hero-floating-card-a">
+          <strong>En vivo</strong>
+          <span>Canal 01 · Canal 02</span>
+        </div>
+        <div className="hero-floating-card hero-floating-card-b">
+          <strong>Tu marca</strong>
+          <span>Series · Pelicula destacada</span>
+        </div>
+
+        <div className="hero-device hero-laptop-frame">
+          <div className="hero-screen chrome">
+            <div className="hero-screen-top">
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="hero-screen-grid">
+              <div className="hero-screen-feature">
+                <strong>Series</strong>
+                <small>Catalogo personalizado</small>
+              </div>
+              {[1, 2, 3].map(item => <i key={item} />)}
+            </div>
+          </div>
+          <div className="hero-laptop-base" />
+        </div>
+
+        <div className="hero-device hero-tv-frame">
+          <div className="hero-screen">
+            <div className="hero-tv-sidebar">
+              {['Inicio', 'En vivo', 'Peliculas', 'Series'].map(item => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+            <div className="hero-tv-content">
+              <div className="hero-tv-banner">
+                <strong>Pelicula destacada</strong>
+                <small>Tu marca TV</small>
+              </div>
+              <div className="hero-tv-grid">
+                {[1, 2, 3, 4].map(item => <i key={item}>Canal 0{item}</i>)}
+              </div>
+            </div>
+          </div>
+          <div className="hero-tv-stand" />
+        </div>
+
+        <div className="hero-device hero-phone-frame">
+          <div className="hero-phone-notch" />
+          <div className="hero-screen compact">
+            <div className="hero-phone-brand">Tu marca</div>
+            <div className="hero-phone-list">
+              {[1, 2, 3].map(item => (
+                <i key={item}>
+                  <span />
+                  <small>Canal 0{item}</small>
+                </i>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StrongHero() {
+  const heroStats = [
+    {
+      value: '09',
+      label: 'Plataformas disponibles',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="w-4 h-4">
+          <rect x="3" y="4" width="7" height="7" rx="1.5" />
+          <rect x="14" y="4" width="7" height="7" rx="1.5" />
+          <rect x="3" y="13" width="7" height="7" rx="1.5" />
+          <rect x="14" y="13" width="7" height="7" rx="1.5" />
+        </svg>
+      ),
+    },
+    {
+      value: '100%',
+      label: 'Marca personalizada',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="w-4 h-4">
+          <path d="M12 3l7 3v5c0 4.2-2.7 8.1-7 10-4.3-1.9-7-5.8-7-10V6l7-3z" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+      ),
+    },
+    {
+      value: '24/7',
+      label: 'Soporte especializado',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="w-4 h-4">
+          <path d="M4 13a8 8 0 0116 0" />
+          <rect x="3" y="12" width="4" height="7" rx="2" />
+          <rect x="17" y="12" width="4" height="7" rx="2" />
+          <path d="M12 20h2a2 2 0 002-2" />
+        </svg>
+      ),
+    },
+    {
+      value: 'Multi',
+      label: 'Plataforma',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="w-4 h-4">
+          <rect x="2.5" y="5" width="11" height="8" rx="1.8" />
+          <rect x="16.5" y="4" width="5" height="10" rx="1.5" />
+          <path d="M8 19h8" />
+          <path d="M12 13v6" />
+        </svg>
+      ),
+    },
+  ]
+
+  return (
+    <section id="hero" className="relative pt-28 pb-8 px-6 overflow-hidden min-h-[calc(88vh-5rem)] flex items-center hero-surface">
+      <div className="hero-grid-mask" />
+      <div className="hero-radial hero-radial-left" />
+      <div className="hero-radial hero-radial-right" />
+
+      <div className="relative max-w-7xl mx-auto w-full">
+        <div className="grid lg:grid-cols-[0.44fr_0.56fr] gap-12 xl:gap-16 items-center">
+          <div className="hero-copy-column">
+            <div className="section-label mb-5 hero-kicker">Soluciones IPTV White-Label</div>
+            <h1 className="font-display font-800 leading-[1.04] mb-6 hero-title hero-title-balance" style={{ fontSize: 'clamp(2rem, 4.35vw, 3.55rem)', color: '#09162D' }}>
+              Tu propia aplicacion IPTV
+              <br />
+              para <span className="hero-title-highlight">televisores,</span>
+              <br />
+              <span className="hero-title-highlight">celulares y computadoras</span>
+            </h1>
+            <p className="text-[1.05rem] mb-8 leading-relaxed hero-copy hero-copy-width" style={{ color: '#425370' }}>
+              Desarrollamos aplicaciones personalizadas con el nombre, logotipo, colores y funciones de tu empresa. Elige las plataformas que necesitas y construye una solucion adaptada a tu negocio.
+            </p>
+            <div className="flex flex-wrap gap-4 hero-actions">
+              <a href="/plataformas" className="btn-primary px-6 py-3.5 rounded-2xl text-white text-sm hero-cta-main">
+                <span>Ver plataformas y precios</span>
+              </a>
+              <a href="/contacto" className="btn-outline px-6 py-3.5 rounded-2xl text-sm hero-cta-secondary">
+                Solicitar demostracion
+              </a>
+            </div>
+            <div className="hero-trust-row">
+              <span className="hero-trust-dot" />
+              <p style={{ color: '#465A78' }}>Cotizacion orientada a operadores, ISPs, cableoperadores y marcas IPTV privadas.</p>
+            </div>
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mt-8 hero-stats">
+              {heroStats.map(item => (
+                <div key={item.label} className="hero-stat-card">
+                  <div className="hero-stat-icon">{item.icon}</div>
+                  <div className="font-display font-800 text-2xl hero-stat-value">{item.value}</div>
+                  <div className="text-sm hero-stat-label">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-center hero-device-stage">
+            <StrongDeviceMockupLinear />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function StrongDeviceMockupLinear() {
+  return (
+    <div className="hero-visual-shell">
+      <div className="hero-visual-panel hero-visual-panel-linear">
+        <div className="hero-visual-glow hero-visual-glow-a" />
+        <div className="hero-visual-glow hero-visual-glow-b" />
+        <div className="hero-visual-pattern" />
+
+        <div className="hero-device-image-wrap">
+          <img
+            src="/ChatGPT%20Image%2022%20jul%202026,%2015_39_17.png"
+            alt="Vista multiplataforma de VAELO en TV, tablet y movil"
+            className="hero-device-image"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HomePlatformsBand({ platforms }: { platforms: typeof PLATFORMS }) {
+  return (
+    <section className="py-18 px-6 home-platform-band">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-10">
+          <div>
+            <div className="section-label mb-3" style={{ color: '#8BB8FF' }}>Plataformas disponibles</div>
+            <h2 className="font-display font-800" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#FFFFFF' }}>
+              Desarrollamos para todos tus dispositivos
+            </h2>
+            <p className="mt-4 max-w-2xl" style={{ color: '#B7C9E8' }}>
+              Construye una experiencia consistente en moviles, televisores, computadoras y navegadores.
+            </p>
+          </div>
+          <a href="/plataformas" className="btn-outline inline-block px-6 py-3 rounded-2xl text-sm" style={{ color: '#DBE8FF', borderColor: 'rgba(140,183,255,0.4)', background: 'rgba(255,255,255,0.04)' }}>
+            Ver catalogo completo
+          </a>
+        </div>
+
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {platforms.map(platform => (
+            <a key={platform.id} href={getPlatformPath(platform.id)} className="home-platform-chip-card">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${platform.color}20`, color: '#FFFFFF', border: `1px solid ${platform.color}40` }}>
+                {platform.icon}
+              </div>
+              <div>
+                <h3>{platform.name}</h3>
+                <p>{getPlatformCategory(platform.id)}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function PlatformCard({ p }: { p: typeof PLATFORMS[0] }) {
+  const tag = getPlatformCategory(p.id)
+  const publishing = getPlatformPublishing(p.id)
+
   return (
     <div className="platform-card p-6 flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-4">
+      <div className="platform-card-head">
         <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${p.color}15`, color: p.color, border: `1.5px solid ${p.color}25` }}>
           {p.icon}
         </div>
-        <h3 className="font-display font-700 text-lg" style={{ color: '#0D1B3E' }}>{p.name}</h3>
+        <span className="platform-tag">{tag}</span>
       </div>
-      <p className="text-sm mb-5 leading-relaxed" style={{ color: '#4A5B7A' }}>{p.description}</p>
-      <ul className="space-y-2 mb-6 flex-1">
-        {p.features.map(f => (
-          <li key={f} className="flex items-start gap-2 text-sm" style={{ color: '#4A5B7A' }}>
-            <svg className="w-4 h-4 mt-0.5 flex-shrink-0 feature-check" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-            </svg>
-            {f}
-          </li>
-        ))}
-      </ul>
-      <div className="mt-auto">
-        <div className="mb-3">
-          <span className="text-xs" style={{ color: '#7A8BAA' }}>Desde</span>
-          <div className="font-display font-700 text-2xl" style={{ color: '#0D1B3E' }}>US${p.price}</div>
+
+      <div className="platform-visual-stage mb-5" style={{ '--platform-accent': p.color } as React.CSSProperties}>
+        <div className="platform-visual-topbar">
+          <span className="platform-visual-dot" />
+          <span className="platform-visual-dot" />
+          <span className="platform-visual-dot" />
+          <i>{tag}</i>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <a href={getPlatformPath(p.id)} className="btn-outline block text-center py-2.5 rounded-xl text-sm">
-            Ver detalle
-          </a>
-          <a href="/contacto" className="btn-primary block text-center py-2.5 rounded-xl text-sm text-white">
-            <span>{p.cta}</span>
-          </a>
+        <div className="platform-visual-body">
+          <div className="platform-visual-hero">
+            <strong>{p.name}</strong>
+            <small>{p.features[0]}</small>
+          </div>
+          <div className="platform-visual-stack">
+            <span />
+            <span />
+          </div>
         </div>
+        <div className="platform-visual-footer">
+          <i />
+          <i />
+          <i />
+        </div>
+      </div>
+
+      <div className="platform-card-copy">
+        <h3 className="font-display font-800 text-xl mb-2" style={{ color: '#0D1B3E' }}>{p.name}</h3>
+        <p className="text-sm mb-5 leading-relaxed" style={{ color: '#4A5B7A' }}>{p.description}</p>
+      </div>
+
+      <div className="platform-card-section mb-5">
+        <span className="platform-section-label">Incluye</span>
+        <ul className="space-y-2.5">
+          {p.features.slice(0, 3).map(f => (
+            <li key={f} className="flex items-start gap-2 text-sm platform-feature-row" style={{ color: '#4A5B7A' }}>
+              <span className="platform-feature-bullet">
+                <svg className="w-3.5 h-3.5 feature-check" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                </svg>
+              </span>
+              {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="platform-card-meta mb-5">
+        <div className="platform-price-block">
+          <span className="platform-section-label">Desde</span>
+          <strong>US${p.price}</strong>
+        </div>
+        <div className="platform-time-block">
+          <span className="platform-section-label">Tiempo estimado</span>
+          <strong>{getPlatformTimeline(p.id)}</strong>
+        </div>
+      </div>
+
+      <div className="platform-card-section mb-5">
+        <span className="platform-section-label">Entrega y publicacion</span>
+        <div className="flex flex-wrap gap-2.5">
+          {publishing.slice(0, 2).map(item => (
+            <span key={item} className="platform-delivery-chip">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" className="w-3.5 h-3.5">
+                <path d="M10 3v14" />
+                <path d="M4 10h12" />
+              </svg>
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5 mt-auto">
+        <a href={getPlatformPath(p.id)} className="btn-outline platform-secondary-action block text-center py-2.5 rounded-xl text-sm">
+          Ver detalle
+        </a>
+        <a href="/precios" className="btn-primary platform-primary-action block text-center py-2.5 rounded-xl text-sm text-white">
+          <span>Agregar</span>
+        </a>
       </div>
     </div>
   )
@@ -747,33 +1236,85 @@ function PlatformDetailPage({ platform }: { platform: typeof PLATFORMS[0] }) {
 
 function HomePage() {
   const featuredPlatforms = getManagedPlatforms().slice(0, 3)
+  const allPlatforms = getManagedPlatforms()
   const quickLinks = [
     { title: 'Plataformas', desc: 'Revisa sistemas disponibles y precios base.', href: '/plataformas' },
     { title: 'Cotizador', desc: 'Calcula un paquete y solicita propuesta.', href: '/precios' },
-    { title: 'Servicios', desc: 'Publicación, hosting, mantenimiento y extras.', href: '/servicios' },
-    { title: 'Proceso', desc: 'Conoce cómo trabajamos de punta a punta.', href: '/proceso' },
+    { title: 'Servicios', desc: 'Publicacion, hosting, mantenimiento y extras.', href: '/servicios' },
+    { title: 'Proceso', desc: 'Conoce como trabajamos de punta a punta.', href: '/proceso' },
+  ]
+
+  const benefits = [
+    ['Marca propia', 'Nombre, icono, colores, pantallas y experiencia comercial bajo tu identidad.'],
+    ['Multiplataforma real', 'Cada sistema se trabaja con criterios de navegacion, tienda y dispositivo.'],
+    ['Operacion empresarial', 'Cotizacion, servicios, mantenimiento y soporte pensados para ventas B2B.'],
+    ['Escalabilidad', 'Empieza con una plataforma y suma Smart TV, movil, web o escritorio despues.'],
+  ]
+
+  const identityChips = [
+    {
+      label: 'Splash screen',
+      icon: (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" className="w-4 h-4">
+          <rect x="3" y="3" width="14" height="14" rx="3" />
+          <path d="M7 13l6-6" />
+          <path d="M7 7h6v6" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Logo e icono',
+      icon: (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" className="w-4 h-4">
+          <path d="M10 3l5 2.2v3.8c0 3.2-2 6.2-5 7.5-3-1.3-5-4.3-5-7.5V5.2L10 3z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Colores corporativos',
+      icon: (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" className="w-4 h-4">
+          <path d="M10 3a7 7 0 100 14c1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.4-1.3-.3-.5-.4-.8-.4-1.1 0-.8.6-1.4 1.4-1.4h1A3.6 3.6 0 0017 8a5 5 0 00-7-5z" />
+          <circle cx="7" cy="8" r="1" fill="currentColor" stroke="none" />
+          <circle cx="10" cy="6.5" r="1" fill="currentColor" stroke="none" />
+          <circle cx="13" cy="8.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Soporte y contacto',
+      icon: (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" className="w-4 h-4">
+          <path d="M4 10a6 6 0 0112 0" />
+          <rect x="3" y="9.5" width="3" height="5" rx="1.5" />
+          <rect x="14" y="9.5" width="3" height="5" rx="1.5" />
+          <path d="M10 15h1.3a1.7 1.7 0 001.7-1.7" />
+        </svg>
+      ),
+    },
   ]
 
   return (
     <>
-      <Hero />
-      <section className="py-20 px-6" style={{ background: '#fff' }}>
+      <StrongHero />
+      <HomePlatformsBand platforms={allPlatforms} />
+      <section className="py-16 px-6 premium-band">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-10">
             <div>
-              <div className="section-label mb-3">Accesos rápidos</div>
+              <div className="section-label mb-3">Accesos rapidos</div>
               <h2 className="font-display font-800" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', color: '#0D1B3E' }}>
-                Todo el proyecto separado por módulos
+                Todo el proyecto separado por modulos
               </h2>
             </div>
             <a href="/contacto" className="btn-primary inline-block px-6 py-3 rounded-xl text-sm text-white">
-              <span>Solicitar cotización</span>
+              <span>Solicitar cotizacion</span>
             </a>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
             {quickLinks.map(link => (
-              <a key={link.href} href={link.href} className="rounded-xl p-5 transition-all" style={{ background: '#F7FAFF', border: '1.5px solid #E8EEF8' }}>
+              <a key={link.href} href={link.href} className="premium-mini-card rounded-2xl p-5 transition-all">
                 <h3 className="font-display font-700 mb-2" style={{ color: '#0D1B3E' }}>{link.title}</h3>
                 <p className="text-sm leading-relaxed" style={{ color: '#4A5B7A' }}>{link.desc}</p>
               </a>
@@ -783,6 +1324,141 @@ function HomePage() {
           <div className="grid lg:grid-cols-3 gap-6">
             {featuredPlatforms.map(platform => <PlatformCard key={platform.id} p={platform} />)}
           </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 dark-section overflow-hidden">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-[0.88fr_1.12fr] gap-12 items-center">
+          <div>
+            <div className="section-label mb-3" style={{ color: '#7DB5FF' }}>Una aplicacion, tu propia marca</div>
+            <h2 className="font-display font-800 text-white leading-tight mb-5" style={{ fontSize: 'clamp(1.9rem, 4vw, 3rem)' }}>
+              De reproductor generico a producto digital con identidad comercial.
+            </h2>
+            <p className="text-base leading-relaxed mb-8" style={{ color: '#B9C8E6' }}>
+              VAELO transforma una experiencia IPTV comun en una aplicacion white-label lista para presentarse ante clientes, distribuidores y aliados con una marca consistente.
+            </p>
+            <div className="brand-chip-grid">
+              {identityChips.map(item => (
+                <div key={item.label} className="brand-chip-card">
+                  <span>{item.icon}</span>
+                  <strong>{item.label}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="brand-comparison-premium">
+            <div className="brand-scene-card brand-scene-generic">
+              <div className="brand-scene-topline">
+                <span>GENERICA</span>
+                <i>Plantilla comun</i>
+              </div>
+              <strong>IPTV Player</strong>
+              <div className="brand-generic-shell">
+                <div className="brand-generic-sidebar">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <div className="brand-generic-main">
+                  <div className="brand-generic-banner" />
+                  <div className="brand-generic-row">
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                  <div className="brand-generic-grid">
+                    {[1, 2, 3, 4].map(i => <i key={i} />)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="brand-scene-card brand-scene-featured">
+              <div className="brand-scene-topline">
+                <span>WHITE-LABEL</span>
+                <i>Marca lista para vender</i>
+              </div>
+              <strong>VAELO Prime TV</strong>
+              <div className="brand-featured-shell">
+                <img src="/vaelo-interface-showcase.png" alt="Mockup de interfaz IPTV personalizada de VAELO" className="brand-featured-image" />
+                <div className="brand-featured-badge">Branding propio</div>
+                <div className="brand-featured-meter">
+                  <b />
+                  <b />
+                  <b />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6" style={{ background: '#F7FAFF' }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="section-label mb-3">Beneficios comerciales</div>
+            <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#0D1B3E' }}>
+              Una plataforma preparada para vender, operar y crecer
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {benefits.map(([title, desc], index) => (
+              <div key={title} className="premium-feature-card">
+                <div className="feature-orbit">{String(index + 1).padStart(2, '0')}</div>
+                <h3 className="font-display font-800 mb-3" style={{ color: '#0D1B3E' }}>{title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#4A5B7A' }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <HowItWorks />
+      <section className="py-24 px-6 demo-section">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-center">
+          <div>
+            <div className="section-label mb-3">Demostracion visual</div>
+            <h2 className="font-display font-800 mb-5" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#0D1B3E' }}>
+              Interfaz IPTV pensada para canales, peliculas y series
+            </h2>
+            <p className="leading-relaxed mb-7" style={{ color: '#4A5B7A' }}>
+              La experiencia se organiza en pantallas claras, navegacion simple y modulos reconocibles para usuarios finales, con una presentacion visual mas cercana a un producto comercial listo para marca privada.
+            </p>
+            <div className="demo-benefit-grid mb-7">
+              {['Navegacion clara', 'Diseno adaptable', 'Interfaz personalizada'].map(item => (
+                <div key={item} className="demo-benefit-card">
+                  <span className="demo-benefit-icon">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" className="w-4 h-4">
+                      <path d="M4 10l4 4 8-8" />
+                    </svg>
+                  </span>
+                  <strong>{item}</strong>
+                </div>
+              ))}
+            </div>
+            <a href="/contacto" className="btn-outline inline-block px-6 py-3 rounded-xl text-sm demo-secondary-cta">
+              Ver demostracion
+            </a>
+          </div>
+
+          <div className="demo-showcase-card">
+            <div className="demo-showcase-glow" />
+            <img src="/vaelo-interface-showcase.png" alt="Interfaz IPTV de demostracion para canales, peliculas y series" className="demo-showcase-image" />
+          </div>
+        </div>
+      </section>
+      <AdditionalServices />
+      <FAQ />
+      <section className="px-6 py-20 final-cta">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="section-label mb-3" style={{ color: '#7DB5FF' }}>Siguiente paso</div>
+          <h2 className="font-display font-800 text-white mb-5" style={{ fontSize: 'clamp(2rem, 4vw, 3.1rem)' }}>
+            Construyamos el paquete IPTV que necesita tu empresa.
+          </h2>
+          <p className="mb-8" style={{ color: '#C9D7F2' }}>Selecciona plataformas, servicios y recibe una cotizacion con codigo unico.</p>
+          <a href="/precios" className="btn-primary inline-block px-7 py-3 rounded-xl text-sm text-white"><span>Crear mi paquete</span></a>
         </div>
       </section>
     </>
@@ -1107,6 +1783,788 @@ function AdditionalServices() {
   )
 }
 
+function EnhancedPlatformSection() {
+  const platforms = getManagedPlatforms()
+  const smartTvCount = platforms.filter(platform => getPlatformCategory(platform.id) === 'Smart TV').length
+
+  return (
+    <section id="platforms" className="py-24 px-6 platform-catalog-shell">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid xl:grid-cols-[0.95fr_1.05fr] gap-10 items-end mb-14">
+          <div>
+            <div className="section-label mb-3">Plataformas disponibles</div>
+            <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#0D1B3E' }}>
+              Catalogo multiplataforma para mover tu marca entre TV, movil, web y escritorio
+            </h2>
+            <p style={{ color: '#4A5B7A', maxWidth: 620 }}>
+              Cada plataforma se desarrolla de forma independiente con criterios tecnicos, publicacion y navegacion propios. Puedes empezar con una sola y escalar despues sin rehacer la propuesta comercial.
+            </p>
+          </div>
+          <div className="catalog-summary-panel">
+            <div>
+              <span>Total disponibles</span>
+              <strong>{platforms.length} plataformas</strong>
+            </div>
+            <div>
+              <span>Foco Smart TV</span>
+              <strong>{smartTvCount} opciones</strong>
+            </div>
+            <div>
+              <span>Tiempo de arranque</span>
+              <strong>Desde 3 semanas</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {platforms.map(p => <PlatformCard key={p.id} p={p} />)}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function EnhancedPlatformDetailPage({ platform }: { platform: typeof PLATFORMS[0] }) {
+  const compatible = COMPARISON_FEATURES
+    .map((feature, index) => ({ feature, value: COMPARISON_DATA[platform.id]?.[index] }))
+    .filter(item => item.value)
+  const publishing = getPlatformPublishing(platform.id)
+  const requirements = getPlatformRequirements(platform)
+  const recommendedServices = getRecommendedServicesForPlatform(platform)
+  const platformFaq = getPlatformFaq(platform)
+  const process = [
+    'Brief comercial y definicion de marca',
+    'Adaptacion visual y estructura funcional',
+    'Integracion con servidor o API',
+    'Pruebas internas por dispositivo',
+    'Entrega o preparacion de publicacion',
+  ]
+
+  return (
+    <section className="pt-28 pb-20 px-6 platform-detail-shell">
+      <div className="max-w-7xl mx-auto">
+        <a href="/plataformas" className="nav-link inline-block mb-8">Volver a plataformas</a>
+
+        <div className="grid lg:grid-cols-[1.06fr_0.94fr] gap-10 items-start mb-12">
+          <div>
+            <div className="section-label mb-3">Detalle de plataforma</div>
+            <div className="flex flex-wrap items-center gap-4 mb-5">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: `${platform.color}15`, color: platform.color, border: `1.5px solid ${platform.color}25` }}>
+                {platform.icon}
+              </div>
+              <div>
+                <h1 className="font-display font-800" style={{ fontSize: 'clamp(2rem, 5vw, 3.4rem)', color: '#0D1B3E' }}>{platform.name}</h1>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="platform-tag">{getPlatformCategory(platform.id)}</span>
+                  <span className="platform-chip">Tiempo {getPlatformTimeline(platform.id)}</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-lg leading-relaxed mb-8" style={{ color: '#4A5B7A', maxWidth: 720 }}>{platform.description}</p>
+
+            <div className="platform-detail-hero-card">
+              <div className="platform-preview-grid">
+                <div className="platform-preview-main" style={{ borderColor: `${platform.color}45` }}>
+                  <div className="platform-preview-ribbon" style={{ background: platform.color }} />
+                  <div className="platform-preview-row">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="platform-preview-content">
+                    {[1, 2, 3, 4].map(item => <i key={item} />)}
+                  </div>
+                </div>
+                <div className="platform-preview-side">
+                  <div />
+                  <div />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside className="platform-sticky-summary">
+            <p className="text-xs font-display font-700 uppercase mb-1" style={{ color: '#7A8BAA' }}>Precio base</p>
+            <div className="font-display font-800 text-4xl mb-4" style={{ color: '#0D1B3E' }}>US${platform.price}</div>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: '#4A5B7A' }}>
+              Incluye desarrollo white-label, identidad visual base, reproductor e integracion inicial con tu entorno IPTV.
+            </p>
+            <div className="summary-stat-grid">
+              <div>
+                <span>Entrega estimada</span>
+                <strong>{getPlatformTimeline(platform.id)}</strong>
+              </div>
+              <div>
+                <span>Publicacion</span>
+                <strong>{publishing[0]}</strong>
+              </div>
+            </div>
+            <a href="/precios" className="btn-primary block text-center py-3 rounded-xl text-white mb-3">
+              <span>Anadir al paquete</span>
+            </a>
+            <a href="/contacto" className="btn-outline block text-center py-3 rounded-xl text-sm mb-3">
+              Solicitar cotizacion
+            </a>
+            <a href="/comparacion" className="platform-link-row">Comparar plataformas</a>
+
+            <div className="mt-8 pt-6" style={{ borderTop: '1px solid #E8EEF8' }}>
+              <h3 className="font-display font-700 mb-3" style={{ color: '#0D1B3E' }}>Compatibilidad</h3>
+              <div className="flex flex-wrap gap-2">
+                {compatible.slice(0, 8).map(item => (
+                  <span key={item.feature} className="platform-chip">{item.feature}</span>
+                ))}
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div className="grid lg:grid-cols-[1fr_0.92fr] gap-8 mb-8">
+          <section className="detail-panel">
+            <div className="section-label mb-3">Incluye</div>
+            <h2 className="font-display font-800 text-2xl mb-5" style={{ color: '#0D1B3E' }}>Caracteristicas base del entregable</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {platform.features.map(feature => (
+                <div key={feature} className="detail-list-card">
+                  <svg className="w-5 h-5 mt-0.5 feature-check flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                  </svg>
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="detail-panel">
+            <div className="section-label mb-3">Publicacion</div>
+            <h2 className="font-display font-800 text-2xl mb-5" style={{ color: '#0D1B3E' }}>Opciones de entrega y salida</h2>
+            <div className="space-y-3">
+              {publishing.map(item => (
+                <div key={item} className="detail-list-card">
+                  <svg className="w-5 h-5 mt-0.5 feature-check flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.172 7.707 8.879a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8 mb-8">
+          <section className="detail-panel lg:col-span-2">
+            <div className="section-label mb-3">Proceso de desarrollo</div>
+            <h2 className="font-display font-800 text-2xl mb-5" style={{ color: '#0D1B3E' }}>Como trabajamos esta plataforma</h2>
+            <div className="detail-timeline">
+              {process.map((step, index) => (
+                <div key={step} className="timeline-row">
+                  <div className="timeline-index">{String(index + 1).padStart(2, '0')}</div>
+                  <div>
+                    <strong>{step}</strong>
+                    <p>Seguimiento tecnico, validacion funcional y control de calidad orientado al tipo de dispositivo.</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="detail-panel">
+            <div className="section-label mb-3">Requisitos</div>
+            <h2 className="font-display font-800 text-2xl mb-5" style={{ color: '#0D1B3E' }}>Lo que necesitaremos de tu lado</h2>
+            <div className="space-y-3">
+              {requirements.map(item => (
+                <div key={item} className="detail-list-card">
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <section className="detail-panel mb-8 notice-panel">
+          <div className="section-label mb-3">Avisos importantes</div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              'La publicacion esta sujeta a la revision y aprobacion de cada tienda.',
+              'Las cuentas de desarrollador, licencias, certificados y pagos requeridos por terceros pueden cobrarse por separado.',
+              'La compatibilidad puede variar segun el modelo, version del sistema y capacidad del dispositivo.',
+            ].map(item => (
+              <div key={item} className="notice-card">{item}</div>
+            ))}
+          </div>
+        </section>
+
+        <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-8">
+          <section className="detail-panel">
+            <div className="section-label mb-3">Servicios recomendados</div>
+            <h2 className="font-display font-800 text-2xl mb-5" style={{ color: '#0D1B3E' }}>Complementos que suelen acompanar esta entrega</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {recommendedServices.map(service => (
+                <div key={service.name} className="service-inline-card">
+                  <strong>{service.name}</strong>
+                  <span>{service.price}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="detail-panel">
+            <div className="section-label mb-3">FAQ especifico</div>
+            <h2 className="font-display font-800 text-2xl mb-5" style={{ color: '#0D1B3E' }}>Preguntas habituales sobre {platform.name}</h2>
+            <div className="space-y-3">
+              {platformFaq.map(item => (
+                <div key={item.q} className="faq-compact-card">
+                  <strong>{item.q}</strong>
+                  <p>{item.a}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function EnhancedAdditionalServices() {
+  const services = getManagedServices()
+  const featured = services.slice(0, 4)
+  const support = services.slice(4)
+
+  return (
+    <section className="py-24 px-6 services-shell">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-end mb-14">
+          <div>
+            <div className="section-label mb-3">Servicios adicionales</div>
+            <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#0D1B3E' }}>
+              Complementos tecnicos y comerciales para cerrar una propuesta mas completa
+            </h2>
+            <p style={{ color: '#4A5B7A', maxWidth: 620 }}>
+              Publicacion, hosting, panel, mantenimiento, notificaciones y capas extra de operacion para convertir una app en una solucion lista para vender.
+            </p>
+          </div>
+          <div className="services-featured-grid">
+            {featured.map(service => (
+              <div key={service.name} className="service-highlight-card">
+                <strong>{service.name}</strong>
+                <span>{service.price}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {support.map(s => (
+            <div key={s.name} className="platform-card p-5">
+              <div className="font-display font-700 text-sm mb-2" style={{ color: '#0D1B3E' }}>{s.name}</div>
+              <div className="font-display font-700 gradient-text-blue mb-2">{s.price}</div>
+              <p className="text-sm" style={{ color: '#60708A' }}>Servicio complementario configurable segun plataforma y alcance comercial.</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function EnhancedCustomization() {
+  const [brandName, setBrandName] = useState('VAELO Prime')
+  const [selectedColor, setSelectedColor] = useState('#2B7FFF')
+  const colors = ['#2B7FFF', '#0EA5A4', '#2563EB', '#0F766E', '#1D4ED8', '#F97316']
+  const items = [
+    'Nombre de la aplicacion',
+    'Logotipo e icono',
+    'Colores corporativos',
+    'Splash y pantalla de carga',
+    'Banners promocionales',
+    'Menu principal',
+    'Diseño de canales, peliculas y series',
+    'Dominio y soporte de contacto',
+  ]
+
+  return (
+    <section id="customization" className="py-24 px-6 services-shell">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-start">
+          <div>
+            <div className="section-label mb-3">Personalizacion total</div>
+            <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#0D1B3E' }}>
+              De una app generica a una experiencia que se reconoce como tuya
+            </h2>
+            <p className="leading-relaxed mb-8" style={{ color: '#4A5B7A' }}>
+              Esta demo no es un editor final, pero si muestra de forma clara el nivel de personalizacion que podemos aplicar sobre TV, movil y pantallas comerciales.
+            </p>
+
+            <div className="detail-panel">
+              <div className="space-y-3 mb-6">
+                <label className="admin-field">
+                  <span>Nombre de demostracion</span>
+                  <input value={brandName} onChange={e => setBrandName(e.target.value)} />
+                </label>
+              </div>
+              <div className="mb-5">
+                <span className="block text-sm font-display font-700 mb-3" style={{ color: '#60708A' }}>Color principal</span>
+                <div className="flex flex-wrap gap-3">
+                  {colors.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      aria-label={color}
+                      className="color-dot"
+                      style={{ background: color, outline: selectedColor === color ? '3px solid rgba(13,27,62,0.18)' : 'none' }}
+                      onClick={() => setSelectedColor(color)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                {items.map(item => (
+                  <div key={item} className="detail-list-card">
+                    <svg className="w-5 h-5 mt-0.5 feature-check flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="brand-panel muted" style={{ transform: 'none' }}>
+              <span>GENERICA</span>
+              <strong>IPTV Player</strong>
+              <div className="brand-screen">
+                {[1, 2, 3, 4].map(i => <i key={i} />)}
+              </div>
+            </div>
+
+            <div className="custom-brand-stage">
+              <div className="custom-brand-tv">
+                <div className="custom-brand-top" style={{ background: `linear-gradient(135deg, ${selectedColor}, #0D1B3E)` }}>
+                  <strong>{brandName}</strong>
+                  <span>Canales · Peliculas · Series</span>
+                </div>
+                <div className="custom-brand-grid">
+                  {[1, 2, 3, 4].map(i => <i key={i} style={{ background: `${selectedColor}22`, borderColor: `${selectedColor}35` }} />)}
+                </div>
+              </div>
+              <div className="custom-brand-phone">
+                <div className="custom-brand-notch" />
+                <div className="custom-brand-top mini" style={{ background: `linear-gradient(135deg, ${selectedColor}, #0D1B3E)` }}>
+                  <strong>{brandName}</strong>
+                </div>
+                <div className="custom-brand-list">
+                  {[1, 2, 3].map(i => <i key={i} style={{ background: `${selectedColor}18` }} />)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function EnhancedPackageBuilder() {
+  const platforms = getManagedPlatforms()
+  const services = getManagedServices()
+  const db = getLocalDb()
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(getQuoteDraft()?.platforms ?? [])
+  const [selectedServices, setSelectedServices] = useState<string[]>(getQuoteDraft()?.services ?? [])
+  const estimate = buildQuoteEstimate(selectedPlatforms, selectedServices)
+
+  const togglePlatform = (id: string) => {
+    setSelectedPlatforms(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id])
+  }
+
+  const toggleService = (name: string) => {
+    setSelectedServices(prev => prev.includes(name) ? prev.filter(item => item !== name) : [...prev, name])
+  }
+
+  useEffect(() => {
+    saveQuoteDraft(selectedPlatforms, selectedServices)
+  }, [selectedPlatforms, selectedServices])
+
+  return (
+    <section className="py-24 px-6 platform-catalog-shell">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-14">
+          <div className="section-label mb-3">Constructor de paquetes</div>
+          <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#0D1B3E' }}>
+            Configura una propuesta con plataformas, extras y descuento automatico
+          </h2>
+          <p style={{ color: '#4A5B7A', maxWidth: 700, margin: '0 auto' }}>
+            El resumen se actualiza en tiempo real y queda listo para pasar a cotizacion con selecciones, descuento y estructura de pago sugerida.
+          </p>
+        </div>
+
+        <div className="grid xl:grid-cols-[1.15fr_0.85fr] gap-8">
+          <div className="space-y-8">
+            <section className="detail-panel">
+              <div className="admin-panel-header">
+                <div>
+                  <h3 className="font-display font-800 text-2xl" style={{ color: '#0D1B3E' }}>Plataformas</h3>
+                  <p className="text-sm" style={{ color: '#60708A' }}>Selecciona una o varias segun el alcance comercial.</p>
+                </div>
+                <span className="admin-badge">{selectedPlatforms.length} seleccionadas</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {platforms.map(platform => {
+                  const active = selectedPlatforms.includes(platform.id)
+                  return (
+                    <button
+                      key={platform.id}
+                      type="button"
+                      onClick={() => togglePlatform(platform.id)}
+                      className="platform-choice-card"
+                      style={{
+                        borderColor: active ? '#2B7FFF' : '#DDE7F5',
+                        boxShadow: active ? '0 18px 38px rgba(43,127,255,0.14)' : undefined,
+                        background: active ? 'linear-gradient(180deg, rgba(238,244,255,0.95), rgba(255,255,255,0.98))' : undefined,
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${platform.color}15`, color: platform.color }}>
+                          {platform.icon}
+                        </div>
+                        <span className="platform-tag">{getPlatformCategory(platform.id)}</span>
+                      </div>
+                      <strong>{platform.name}</strong>
+                      <p>{platform.description}</p>
+                      <div className="platform-choice-meta">
+                        <span>Desde US${platform.price}</span>
+                        <span>{getPlatformTimeline(platform.id)}</span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+
+            <section className="detail-panel">
+              <div className="admin-panel-header">
+                <div>
+                  <h3 className="font-display font-800 text-2xl" style={{ color: '#0D1B3E' }}>Servicios adicionales</h3>
+                  <p className="text-sm" style={{ color: '#60708A' }}>Publicacion, operacion, soporte y crecimiento.</p>
+                </div>
+                <span className="admin-badge">{selectedServices.length} extras</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {services.map(service => {
+                  const active = selectedServices.includes(service.name)
+                  return (
+                    <button
+                      key={service.name}
+                      type="button"
+                      onClick={() => toggleService(service.name)}
+                      className="service-select-card"
+                      style={{ borderColor: active ? '#2B7FFF' : '#DDE7F5', background: active ? '#EEF4FF' : '#fff' }}
+                    >
+                      <strong>{service.name}</strong>
+                      <span>{service.price}</span>
+                      <small>{isRecurringService(service.name, service.price) ? 'Cargo recurrente' : 'Cargo unico'}</small>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          </div>
+
+          <aside className="platform-sticky-summary">
+            <h3 className="font-display font-800 text-2xl mb-5" style={{ color: '#0D1B3E' }}>Resumen</h3>
+            <div className="space-y-4">
+              <div className="summary-line"><span>Plataformas</span><strong>{selectedPlatforms.length}</strong></div>
+              <div className="summary-line"><span>Servicios</span><strong>{selectedServices.length}</strong></div>
+              <div className="summary-line"><span>Subtotal plataformas</span><strong>US${estimate.platformSubtotal}</strong></div>
+              <div className="summary-line"><span>Descuento</span><strong>{estimate.discountPct}%</strong></div>
+              <div className="summary-line"><span>Monto descontado</span><strong>-US${estimate.discountAmount}</strong></div>
+              <div className="summary-line"><span>Pago unico</span><strong>US${estimate.oneTimeTotal}</strong></div>
+              <div className="summary-line"><span>Servicios mensuales</span><strong>US${estimate.monthlyTotal}</strong></div>
+            </div>
+
+            <div className="quote-total-panel mt-6">
+              <span>Total estimado</span>
+              <strong>US${estimate.estimatedTotal}</strong>
+              <p>Pago inicial sugerido: US${estimate.suggestedDeposit} · saldo: US${estimate.remainingBalance}</p>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <div className="text-sm" style={{ color: '#60708A' }}>
+                Reglas de descuento activas: {db.discountRules.map(rule => `${rule.minPlatforms}+ (${rule.discountPct}%)`).join(' · ')}
+              </div>
+              <a href="/contacto" className="btn-primary block text-center py-3 rounded-xl text-white">
+                <span>Continuar a cotizacion</span>
+              </a>
+            </div>
+
+            <p className="text-xs mt-4 leading-relaxed" style={{ color: '#7A8BAA' }}>
+              Precio estimado. El valor final puede variar segun funciones, diseño, servidor IPTV, publicacion y requisitos tecnicos.
+            </p>
+          </aside>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function EnhancedQuoteForm() {
+  const draft = getQuoteDraft()
+  const initialPlatforms = draft?.platforms ?? []
+  const initialServices = draft?.services ?? []
+  const [form, setForm] = useState<QuoteFormState>({
+    name: '',
+    company: '',
+    country: '',
+    email: '',
+    whatsapp: '',
+    appName: '',
+    website: '',
+    clients: '',
+    platforms: initialPlatforms,
+    services: initialServices,
+    iptv_panel: '',
+    store_publish: '',
+    admin_panel: '',
+    budget: '',
+    desiredDelivery: '',
+    description: '',
+    privacyAccepted: false,
+    logoName: '',
+  })
+  const [sentQuote, setSentQuote] = useState<LocalQuote | null>(null)
+  const [whatsappUrl, setWhatsappUrl] = useState('')
+  const platforms = getManagedPlatforms()
+  const services = getManagedServices()
+  const estimate = buildQuoteEstimate(form.platforms, form.services)
+
+  const setField = <K extends keyof QuoteFormState>(key: K, value: QuoteFormState[K]) => {
+    setForm(prev => ({ ...prev, [key]: value }))
+  }
+
+  const togglePlatform = (id: string) => {
+    setForm(prev => ({ ...prev, platforms: prev.platforms.includes(id) ? prev.platforms.filter(item => item !== id) : [...prev.platforms, id] }))
+  }
+
+  const toggleService = (name: string) => {
+    setForm(prev => ({ ...prev, services: prev.services.includes(name) ? prev.services.filter(item => item !== name) : [...prev.services, name] }))
+  }
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!form.privacyAccepted) return
+
+    const quote = saveLocalQuote({
+      name: form.name || 'Sin nombre',
+      company: form.company || 'Sin empresa',
+      country: form.country,
+      email: form.email,
+      whatsapp: form.whatsapp,
+      clients: form.clients,
+      platforms: form.platforms,
+      services: form.services,
+      iptv_panel: form.iptv_panel,
+      store_publish: form.store_publish,
+      admin_panel: form.admin_panel,
+      budget: form.budget,
+      description: form.description,
+      appName: form.appName,
+      website: form.website,
+      desiredDelivery: form.desiredDelivery,
+      logoName: form.logoName,
+      subtotal: estimate.platformSubtotal,
+      discountAmount: estimate.discountAmount,
+      monthlyTotal: estimate.monthlyTotal,
+      oneTimeTotal: estimate.oneTimeTotal,
+      suggestedDeposit: estimate.suggestedDeposit,
+      remainingBalance: estimate.remainingBalance,
+      estimatedTotal: estimate.estimatedTotal,
+    })
+
+    const message = [
+      `Hola, quiero dar seguimiento a la cotizacion ${quote.id}.`,
+      `Empresa: ${quote.company}`,
+      `Aplicacion: ${quote.appName || 'Por definir'}`,
+      `Plataformas: ${estimate.platforms.map(platform => platform.name).join(', ')}`,
+      `Servicios: ${estimate.services.map(service => service.name).join(', ') || 'Ninguno'}`,
+      `Pago unico: US$${estimate.oneTimeTotal}`,
+      `Servicios mensuales: US$${estimate.monthlyTotal}`,
+    ].join('\n')
+
+    setWhatsappUrl(`https://wa.me/?text=${encodeURIComponent(message)}`)
+    setSentQuote(quote)
+    clearQuoteDraft()
+  }
+
+  if (sentQuote) {
+    return (
+      <section id="contact" className="py-24 px-6 platform-detail-shell">
+        <div className="max-w-4xl mx-auto">
+          <div className="detail-panel text-center">
+            <div className="w-18 h-18 mx-auto rounded-2xl flex items-center justify-center mb-5" style={{ width: 72, height: 72, background: 'linear-gradient(135deg, #2B7FFF, #0D1B3E)' }}>
+              <svg className="w-8 h-8 text-white" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <div className="section-label mb-3">Solicitud registrada</div>
+            <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#0D1B3E' }}>
+              Cotizacion creada con el codigo {sentQuote.id}
+            </h2>
+            <p style={{ color: '#4A5B7A', maxWidth: 700, margin: '0 auto 28px' }}>
+              Guardamos un snapshot local de plataformas, servicios, montos y datos de contacto para que futuros cambios de precio no alteren esta solicitud.
+            </p>
+            <div className="grid md:grid-cols-3 gap-4 text-left mb-8">
+              <div className="detail-list-card"><span>Pago unico estimado: US${sentQuote.oneTimeTotal ?? sentQuote.estimatedTotal}</span></div>
+              <div className="detail-list-card"><span>Mensual estimado: US${sentQuote.monthlyTotal ?? 0}</span></div>
+              <div className="detail-list-card"><span>Pago inicial sugerido: US${sentQuote.suggestedDeposit ?? 0}</span></div>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="btn-primary px-6 py-3 rounded-xl text-white"><span>Contactar por WhatsApp</span></a>
+              <button type="button" className="btn-outline px-6 py-3 rounded-xl" onClick={() => window.print()}>Imprimir resumen</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section id="contact" className="py-24 px-6 platform-detail-shell">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="section-label mb-3">Cotizacion profesional</div>
+          <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#0D1B3E' }}>
+            Envia tu solicitud con plataformas, servicios y datos del proyecto
+          </h2>
+        </div>
+
+        <div className="grid xl:grid-cols-[1.08fr_0.92fr] gap-8">
+          <form onSubmit={handleSubmit} className="detail-panel space-y-6">
+            <div className="grid sm:grid-cols-2 gap-5">
+              {([
+                { label: 'Nombre completo', key: 'name', placeholder: 'Ej. Carlos Rodriguez' },
+                { label: 'Empresa o marca', key: 'company', placeholder: 'Ej. MiTV Solutions' },
+                { label: 'Pais', key: 'country', placeholder: 'Ej. Mexico' },
+                { label: 'WhatsApp', key: 'whatsapp', placeholder: '+52 55 1234 5678' },
+                { label: 'Correo electronico', key: 'email', placeholder: 'correo@empresa.com' },
+                { label: 'Nombre deseado para la app', key: 'appName', placeholder: 'Ej. MiTV GO' },
+                { label: 'Sitio web', key: 'website', placeholder: 'https://empresa.com' },
+                { label: 'Presupuesto aproximado', key: 'budget', placeholder: 'Ej. US$2,000' },
+              ] satisfies { label: string; key: QuoteTextFieldKey; placeholder: string }[]).map(item => (
+                <label key={item.key} className="admin-field">
+                  <span>{item.label}</span>
+                  <input value={String(form[item.key] ?? '')} placeholder={item.placeholder} onChange={e => setField(item.key, e.target.value)} />
+                </label>
+              ))}
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-5">
+              <label className="admin-field">
+                <span>Servidor IPTV o tipo de fuente</span>
+                <input value={form.iptv_panel} placeholder="Xtream Codes, API, lista privada..." onChange={e => setField('iptv_panel', e.target.value)} />
+              </label>
+              <label className="admin-field">
+                <span>Fecha deseada de entrega</span>
+                <input type="date" value={form.desiredDelivery} onChange={e => setField('desiredDelivery', e.target.value)} />
+              </label>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-5">
+              <label className="admin-field">
+                <span>Publicacion en tiendas</span>
+                <select value={form.store_publish} onChange={e => setField('store_publish', e.target.value)} className="admin-select">
+                  <option value="">Seleccionar...</option>
+                  <option value="si">Si</option>
+                  <option value="no">No</option>
+                  <option value="consultar">Consultar</option>
+                </select>
+              </label>
+              <label className="admin-field">
+                <span>Panel administrativo</span>
+                <select value={form.admin_panel} onChange={e => setField('admin_panel', e.target.value)} className="admin-select">
+                  <option value="">Seleccionar...</option>
+                  <option value="si">Si</option>
+                  <option value="no">No</option>
+                  <option value="consultar">Consultar</option>
+                </select>
+              </label>
+            </div>
+
+            <div>
+              <span className="block text-sm font-display font-700 mb-3" style={{ color: '#60708A' }}>Plataformas</span>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {platforms.map(platform => (
+                  <button key={platform.id} type="button" onClick={() => togglePlatform(platform.id)} className="service-select-card" style={{ borderColor: form.platforms.includes(platform.id) ? '#2B7FFF' : '#DDE7F5', background: form.platforms.includes(platform.id) ? '#EEF4FF' : '#fff' }}>
+                    <strong>{platform.name}</strong>
+                    <span>US${platform.price}</span>
+                    <small>{getPlatformCategory(platform.id)}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className="block text-sm font-display font-700 mb-3" style={{ color: '#60708A' }}>Servicios adicionales</span>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {services.map(service => (
+                  <button key={service.name} type="button" onClick={() => toggleService(service.name)} className="service-select-card" style={{ borderColor: form.services.includes(service.name) ? '#2B7FFF' : '#DDE7F5', background: form.services.includes(service.name) ? '#EEF4FF' : '#fff' }}>
+                    <strong>{service.name}</strong>
+                    <span>{service.price}</span>
+                    <small>{isRecurringService(service.name, service.price) ? 'Recurrente' : 'Unico'}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <label className="admin-field">
+              <span>Descripcion del proyecto</span>
+              <textarea value={form.description} rows={5} placeholder="Cuéntanos objetivos, alcance, servidores, branding, idiomas o cualquier restriccion importante." onChange={e => setField('description', e.target.value)} className="admin-select" />
+            </label>
+
+            <div className="grid sm:grid-cols-2 gap-5">
+              <label className="admin-field">
+                <span>Archivo de logotipo</span>
+                <input type="file" onChange={e => setField('logoName', e.target.files?.[0]?.name ?? '')} />
+              </label>
+              <label className="admin-field">
+                <span>Clientes aproximados</span>
+                <input value={form.clients} placeholder="Ej. 500" onChange={e => setField('clients', e.target.value)} />
+              </label>
+            </div>
+
+            <label className="admin-toggle-row">
+              <input type="checkbox" checked={form.privacyAccepted} onChange={e => setField('privacyAccepted', e.target.checked)} />
+              <span>Acepto el tratamiento de datos y la politica de privacidad para recibir la cotizacion.</span>
+            </label>
+
+            <button type="submit" className="btn-primary w-full py-3.5 rounded-xl text-white text-base" disabled={!form.privacyAccepted}>
+              <span>Registrar cotizacion</span>
+            </button>
+          </form>
+
+          <aside className="platform-sticky-summary">
+            <h3 className="font-display font-800 text-2xl mb-5" style={{ color: '#0D1B3E' }}>Resumen de solicitud</h3>
+            <div className="space-y-4">
+              <div className="summary-line"><span>Plataformas</span><strong>{estimate.platforms.length}</strong></div>
+              <div className="summary-line"><span>Servicios</span><strong>{estimate.services.length}</strong></div>
+              <div className="summary-line"><span>Subtotal</span><strong>US${estimate.platformSubtotal}</strong></div>
+              <div className="summary-line"><span>Descuento</span><strong>-US${estimate.discountAmount}</strong></div>
+              <div className="summary-line"><span>Pago unico</span><strong>US${estimate.oneTimeTotal}</strong></div>
+              <div className="summary-line"><span>Mensual</span><strong>US${estimate.monthlyTotal}</strong></div>
+            </div>
+            <div className="quote-total-panel mt-6">
+              <span>Total estimado</span>
+              <strong>US${estimate.estimatedTotal}</strong>
+              <p>Codigo generado al confirmar: secuencia local tipo `VAELO-Q-1001`.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function RecommendedPackages() {
   const pkgs = [
     {
@@ -1294,9 +2752,9 @@ function FAQ() {
 }
 
 function QuoteForm() {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<QuoteFormState>({
     name: '', company: '', country: '', whatsapp: '', email: '',
-    clients: '', platforms: [] as string[], iptv_panel: '',
+    clients: '', platforms: [], iptv_panel: '',
     store_publish: '', admin_panel: '', budget: '', description: '',
   })
   const [sent, setSent] = useState(false)
@@ -1404,21 +2862,21 @@ function QuoteForm() {
 
         <form onSubmit={handleSubmit} className="rounded-2xl p-8 space-y-5" style={{ background: '#fff', border: '1.5px solid #E8EEF8', boxShadow: '0 8px 32px rgba(43,127,255,0.08)' }}>
           <div className="grid sm:grid-cols-2 gap-5">
-            {[
+            {([
               { label: 'Nombre completo', key: 'name', type: 'text', placeholder: 'Ej. Carlos Rodríguez' },
               { label: 'Nombre de la empresa', key: 'company', type: 'text', placeholder: 'Ej. MiTV Solutions' },
               { label: 'País', key: 'country', type: 'text', placeholder: 'Ej. México' },
               { label: 'WhatsApp', key: 'whatsapp', type: 'tel', placeholder: '+52 55 1234 5678' },
               { label: 'Correo electrónico', key: 'email', type: 'email', placeholder: 'correo@empresa.com' },
               { label: 'Clientes aproximados', key: 'clients', type: 'text', placeholder: 'Ej. 500' },
-            ].map(({ label, key, type, placeholder }) => (
+            ] satisfies { label: string; key: QuoteTextFieldKey; type: string; placeholder: string }[]).map(({ label, key, type, placeholder }) => (
               <div key={key}>
                 <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>{label}</label>
                 <input
                   name={key}
                   type={type}
                   placeholder={placeholder}
-                  value={(form as Record<string, string>)[key]}
+                  value={form[key]}
                   onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                   className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
                   style={inputStyle}
@@ -1460,17 +2918,17 @@ function QuoteForm() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-5">
-            {[
+            {([
               { label: 'Panel / Sistema IPTV', key: 'iptv_panel', placeholder: 'Ej. Xtream Codes, Stalker...' },
               { label: 'Presupuesto aproximado', key: 'budget', placeholder: 'Ej. US$500 – US$2,000' },
-            ].map(({ label, key, placeholder }) => (
+            ] satisfies { label: string; key: QuoteTextFieldKey; placeholder: string }[]).map(({ label, key, placeholder }) => (
               <div key={key}>
                 <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>{label}</label>
                 <input
                   name={key}
                   type="text"
                   placeholder={placeholder}
-                  value={(form as Record<string, string>)[key]}
+                  value={form[key]}
                   onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                   className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
                   style={inputStyle}
@@ -1482,18 +2940,18 @@ function QuoteForm() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-5">
-            {[
+            {([
               { label: '¿Necesita publicación en tiendas?', key: 'store_publish' },
               { label: '¿Necesita panel de administración?', key: 'admin_panel' },
-            ].map(({ label, key }) => (
+            ] satisfies { label: string; key: QuoteTextFieldKey }[]).map(({ label, key }) => (
               <div key={key}>
                 <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>{label}</label>
                 <select
                   name={key}
-                  value={(form as Record<string, string>)[key]}
+                  value={form[key]}
                   onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                   className="w-full rounded-xl px-4 py-2.5 text-sm outline-none"
-                  style={{ ...inputStyle, color: (form as Record<string, string>)[key] ? '#0D1B3E' : '#9AAABB' }}
+                  style={{ ...inputStyle, color: form[key] ? '#0D1B3E' : '#9AAABB' }}
                   onFocus={focusInput}
                   onBlur={blurInput}
                 >
@@ -1980,14 +3438,14 @@ function Footer() {
   const platformNames = getManagedPlatforms().map(p => p.name)
 
   return (
-    <footer style={{ background: '#0D1B3E', borderTop: '1px solid rgba(43,127,255,0.15)' }}>
+    <footer className="footer-premium">
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           <div>
             <div className="flex items-center">
-              <img src="/imgs/vaelo_logo.png" alt="VAELO" className="h-10 w-auto object-contain" />
+              <img src="/imgs/vaelo_logo.png" alt="VAELO" className="h-12 w-auto object-contain footer-logo" />
             </div>
-            <p className="mt-4 text-sm leading-relaxed" style={{ color: '#7A8BAA', maxWidth: 240 }}>
+            <p className="mt-4 text-sm leading-relaxed" style={{ color: '#C9D7F2', maxWidth: 270 }}>
               Desarrollamos aplicaciones IPTV white-label para proveedores, cableoperadores y distribuidores de contenido.
             </p>
             <div className="flex gap-3 mt-5">
@@ -2037,16 +3495,16 @@ function Footer() {
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-4" style={{ borderTop: '1px solid rgba(43,127,255,0.1)' }}>
-          <p className="text-xs" style={{ color: '#4A5B7A' }}>
+          <p className="text-xs" style={{ color: '#91A4C6' }}>
             © 2026 VAELO. Todos los derechos reservados.
           </p>
           <div className="flex gap-5">
             {['Política de privacidad', 'Términos y condiciones'].map(l => (
-              <a key={l} href="#" className="text-xs transition-colors" style={{ color: '#4A5B7A' }}>{l}</a>
+              <a key={l} href="/contacto" className="text-xs transition-colors" style={{ color: '#B8C8E6' }}>{l}</a>
             ))}
           </div>
         </div>
-        <p className="text-xs mt-4 leading-relaxed" style={{ color: '#2A3A55', maxWidth: 700 }}>
+        <p className="text-xs mt-5 leading-relaxed" style={{ color: '#91A4C6', maxWidth: 880 }}>
           Aviso legal: VAELO desarrolla exclusivamente el software y la interfaz de las aplicaciones. El cliente es el único responsable de obtener y mantener las licencias, autorizaciones y derechos legales sobre el contenido que distribuye, así como del cumplimiento de la legislación aplicable en materia de derechos de autor y propiedad intelectual en su jurisdicción.
         </p>
       </div>
@@ -2056,17 +3514,17 @@ function Footer() {
 
 // ─── App ─────────────────────────────────────────────────────────────────────
 
-const ROUTES: Record<string, JSX.Element> = {
+const ROUTES: Record<string, React.ReactElement> = {
   '/': <HomePage />,
-  '/plataformas': <PlatformSection />,
-  '/precios': <PackageBuilder />,
+  '/plataformas': <EnhancedPlatformSection />,
+  '/precios': <EnhancedPackageBuilder />,
   '/comparacion': <ComparisonTable />,
-  '/personalizacion': <Customization />,
-  '/servicios': <AdditionalServices />,
+  '/personalizacion': <EnhancedCustomization />,
+  '/servicios': <EnhancedAdditionalServices />,
   '/paquetes': <RecommendedPackages />,
   '/proceso': <HowItWorks />,
   '/faq': <FAQ />,
-  '/contacto': <QuoteForm />,
+  '/contacto': <EnhancedQuoteForm />,
   '/admin/login': <AdminLogin />,
   '/admin': <AdminDashboard />,
 }
@@ -2092,7 +3550,7 @@ function resolvePage(pathname: string) {
   if (pathname.startsWith('/plataformas/')) {
     const slug = pathname.split('/').filter(Boolean)[1]
     const platform = slug ? getPlatformBySlug(slug) : undefined
-    if (platform) return <PlatformDetailPage platform={platform} />
+    if (platform) return <EnhancedPlatformDetailPage platform={platform} />
   }
 
   return <NotFound />
@@ -2163,15 +3621,16 @@ export default function App() {
         }
       })
 
-      observer = new IntersectionObserver((entries) => {
+      const scrollObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (!entry.isIntersecting) return
           entry.target.classList.add('is-visible')
-          observer.unobserve(entry.target)
+          scrollObserver.unobserve(entry.target)
         })
       }, { threshold: 0.06, rootMargin: '0px 0px -14% 0px' })
 
-      elements.forEach(element => observer.observe(element))
+      observer = scrollObserver
+      elements.forEach(element => scrollObserver.observe(element))
     }, 180)
 
     return () => {
