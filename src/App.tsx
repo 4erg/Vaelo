@@ -281,6 +281,40 @@ type QuoteFormState = {
 
 type QuoteTextFieldKey = Exclude<keyof QuoteFormState, 'platforms' | 'services' | 'privacyAccepted'>
 
+let cachedDb: LocalDb | null = null
+
+async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options?.headers ?? {}),
+    },
+  })
+  if (!response.ok) throw new Error(`API ${path} failed`)
+  return response.json() as Promise<T>
+}
+
+async function loadRemoteDb() {
+  const db = await apiRequest<LocalDb>('/api/db')
+  cachedDb = db
+  localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db))
+  window.dispatchEvent(new CustomEvent('vaelo-db-updated'))
+  return db
+}
+
+function persistRemoteDb(db: LocalDb) {
+  void apiRequest('/api/db', { method: 'PUT', body: JSON.stringify(db) }).catch(error => {
+    console.error('No se pudo guardar en MySQL', error)
+  })
+}
+
+function persistRemoteQuote(quote: LocalQuote) {
+  void apiRequest('/api/quotes', { method: 'POST', body: JSON.stringify(quote) }).catch(error => {
+    console.error('No se pudo guardar la cotizacion en MySQL', error)
+  })
+}
+
 const PLATFORM_SLUGS: Record<string, string> = {
   android: 'android',
   androidtv: 'android-tv',
@@ -448,6 +482,7 @@ function clearQuoteDraft() {
 }
 
 function seedLocalDb(): LocalDb {
+  if (cachedDb) return cachedDb
   const existing = localStorage.getItem(LOCAL_DB_KEY)
   if (existing) {
     const parsed = JSON.parse(existing) as Partial<LocalDb>
@@ -465,6 +500,7 @@ function seedLocalDb(): LocalDb {
       },
     }
     localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(migrated))
+    cachedDb = migrated
     return migrated
   }
 
@@ -530,6 +566,7 @@ function seedLocalDb(): LocalDb {
   }
 
   localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db))
+  cachedDb = db
   return db
 }
 
@@ -550,7 +587,9 @@ function saveLocalQuote(quote: Omit<LocalQuote, 'id' | 'createdAt' | 'status'>) 
     createdAt: new Date().toISOString().slice(0, 10),
   }
   const nextDb = { ...db, quotes: [nextQuote, ...db.quotes] }
+  cachedDb = nextDb
   localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(nextDb))
+  persistRemoteQuote(nextQuote)
   return nextQuote
 }
 
@@ -2993,10 +3032,20 @@ function AdminLogin() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const db = getLocalDb()
-    const admin = db.admins.find(user => user.email === email && user.password === password)
+    let admin: LocalAdmin | undefined
+
+    try {
+      const response = await apiRequest<{ admin: LocalAdmin }>('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      })
+      admin = response.admin
+    } catch {
+      const db = getLocalDb()
+      admin = db.admins.find(user => user.email === email && user.password === password)
+    }
 
     if (!admin) {
       setError('Credenciales incorrectas')
@@ -3061,6 +3110,12 @@ function AdminDashboard() {
   const servicesCount = db.services.filter(service => service.enabled).length
   const pendingQuotes = db.quotes.filter(quote => quote.status === 'Nuevo').length
 
+  useEffect(() => {
+    const refresh = () => setDb(getLocalDb())
+    window.addEventListener('vaelo-db-updated', refresh)
+    return () => window.removeEventListener('vaelo-db-updated', refresh)
+  }, [])
+
   if (!session) return <AdminLogin />
 
   const platformName = (id: string) => managedPlatforms.find(p => p.id === id)?.name ?? id
@@ -3080,7 +3135,9 @@ function AdminDashboard() {
 
   const saveDb = (nextDb: LocalDb, message = 'Cambios guardados') => {
     setDb(nextDb)
+    cachedDb = nextDb
     localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(nextDb))
+    persistRemoteDb(nextDb)
     setSaved(message)
     window.setTimeout(() => setSaved(''), 1800)
   }
@@ -3586,9 +3643,19 @@ function NotFound() {
 }
 
 export default function App() {
+  const [, refreshDb] = useState(0)
   const pathname = window.location.pathname.replace(/\/$/, '') || '/'
   const page = resolvePage(pathname)
   const isAdminPage = pathname.startsWith('/admin')
+
+  useEffect(() => {
+    const refresh = () => refreshDb(value => value + 1)
+    window.addEventListener('vaelo-db-updated', refresh)
+    loadRemoteDb().catch(error => {
+      console.warn('Usando datos locales porque MySQL/API no respondio', error)
+    })
+    return () => window.removeEventListener('vaelo-db-updated', refresh)
+  }, [])
 
   useEffect(() => {
     document.title = getPageTitle(pathname)

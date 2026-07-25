@@ -1,0 +1,9 @@
+node_modules
+node_modules_broken
+dist
+.git
+.env
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*

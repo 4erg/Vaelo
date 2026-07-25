@@ -1,0 +1,12 @@
+{
+  "name": "vaelo/app",
+  "description": "VAELO PHP migration runner for local MySQL",
+  "type": "project",
+  "require": {
+    "php": "^8.2"
+  },
+  "scripts": {
+    "migrate": "php artisan migrate",
+    "db:seed": "php artisan db:seed"
+  }
+}
