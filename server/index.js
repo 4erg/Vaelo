@@ -1,7 +1,6 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
-import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import mysql from 'mysql2/promise'
@@ -11,6 +10,8 @@ dotenv.config()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 const port = Number(process.env.PORT || 3000)
+const dbName = process.env.DB_DATABASE || 'db_vaelo'
+const dbUser = process.env.DB_USERNAME || 'vaelo'
 
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
@@ -18,110 +19,21 @@ app.use(express.json({ limit: '1mb' }))
 const pool = mysql.createPool({
   host: process.env.DB_HOST || '127.0.0.1',
   port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || 'root',
+  user: dbUser,
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'vaelo',
+  database: dbName,
   waitForConnections: true,
   connectionLimit: 10,
 })
 
-const defaultDb = {
-  admins: [{ email: 'admin@fast.com', password: '202526', name: 'Administrador', role: 'admin' }],
-  quotes: [
-    {
-      id: 'Q-1001',
-      name: 'Carlos Rodriguez',
-      company: 'MiTV Solutions',
-      email: 'carlos@mitv.com',
-      whatsapp: '+52 55 1234 5678',
-      platforms: ['androidtv', 'web', 'samsung'],
-      services: ['Panel de administración', 'Hosting'],
-      appName: 'MiTV GO',
-      website: 'https://mitv.example',
-      status: 'Nuevo',
-      createdAt: '2026-07-20',
-      subtotal: 1347,
-      discountAmount: 108,
-      oneTimeTotal: 1239,
-      monthlyTotal: 29,
-      suggestedDeposit: 495,
-      remainingBalance: 744,
-      estimatedTotal: 1347,
-    },
-  ],
-  platformPrices: {
-    android: 299,
-    androidtv: 349,
-    ios: 499,
-    samsung: 499,
-    lg: 499,
-    vidaa: 549,
-    titan: 549,
-    windows: 399,
-    web: 249,
-  },
-  services: [
-    { name: 'Publicación en Google Play', price: 'Desde US$199', enabled: true },
-    { name: 'Publicación en App Store', price: 'Desde US$299', enabled: true },
-    { name: 'Publicación en Samsung TV', price: 'Desde US$399', enabled: true },
-    { name: 'Publicación en LG Content Store', price: 'Desde US$399', enabled: true },
-    { name: 'Panel de administración', price: 'Desde US$499', enabled: true },
-    { name: 'Hosting', price: 'Desde US$29/mes', enabled: true },
-    { name: 'Mantenimiento mensual', price: 'Desde US$99/mes', enabled: true },
-  ],
-  discountRules: [
-    { minPlatforms: 2, discountPct: 5 },
-    { minPlatforms: 3, discountPct: 8 },
-    { minPlatforms: 4, discountPct: 12 },
-    { minPlatforms: 5, discountPct: 15 },
-  ],
-  contactSettings: {
-    email: 'ventas@vaelo.com',
-    whatsapp: '+51 999 999 999',
-    country: 'Perú',
-    responseTime: '24 horas',
-  },
-}
-
-async function ensureSchema() {
-  const schema = await fs.readFile(path.join(__dirname, 'schema.sql'), 'utf8')
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || '127.0.0.1',
-    port: Number(process.env.DB_PORT || 3306),
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    multipleStatements: true,
-  })
-  await connection.query(schema)
-  await connection.end()
-}
-
-async function seedIfEmpty() {
-  const [[{ count }]] = await pool.query('SELECT COUNT(*) AS count FROM admins')
-  if (count > 0) return
-
-  for (const admin of defaultDb.admins) {
-    await pool.query('INSERT INTO admins (email, password, name, role) VALUES (?, ?, ?, ?)', [admin.email, admin.password, admin.name, admin.role])
-  }
-  for (const [platformId, price] of Object.entries(defaultDb.platformPrices)) {
-    await pool.query('INSERT INTO platform_prices (platform_id, price) VALUES (?, ?)', [platformId, price])
-  }
-  for (const [index, service] of defaultDb.services.entries()) {
-    await pool.query('INSERT INTO services (name, price, enabled, sort_order) VALUES (?, ?, ?, ?)', [service.name, service.price, service.enabled, index])
-  }
-  for (const rule of defaultDb.discountRules) {
-    await pool.query('INSERT INTO discount_rules (min_platforms, discount_pct) VALUES (?, ?)', [rule.minPlatforms, rule.discountPct])
-  }
-  for (const [key, value] of Object.entries(defaultDb.contactSettings)) {
-    await pool.query('INSERT INTO contact_settings (setting_key, setting_value) VALUES (?, ?)', [key, value])
-  }
-  for (const quote of defaultDb.quotes) {
-    await insertQuote(quote)
-  }
-}
-
 function toNumber(value) {
   return value === null || value === undefined ? undefined : Number(value)
+}
+
+function parseJsonField(value, fallback = []) {
+  if (Array.isArray(value)) return value
+  if (!value) return fallback
+  return JSON.parse(value)
 }
 
 function mapQuote(row) {
@@ -133,8 +45,8 @@ function mapQuote(row) {
     email: row.email || '',
     whatsapp: row.whatsapp || '',
     clients: row.clients || '',
-    platforms: typeof row.platforms === 'string' ? JSON.parse(row.platforms) : row.platforms,
-    services: typeof row.services === 'string' ? JSON.parse(row.services || '[]') : row.services || [],
+    platforms: parseJsonField(row.platforms),
+    services: parseJsonField(row.services),
     iptv_panel: row.iptv_panel || '',
     store_publish: row.store_publish || '',
     admin_panel: row.admin_panel || '',
@@ -189,6 +101,15 @@ async function readDb() {
     contactSettings: Object.fromEntries(settings.map(row => [row.setting_key, row.setting_value])),
   }
 }
+
+app.get('/api/health', async (_req, res, next) => {
+  try {
+    await pool.query('SELECT 1')
+    res.json({ ok: true })
+  } catch (error) {
+    next(error)
+  }
+})
 
 app.get('/api/db', async (_req, res, next) => {
   try {
@@ -260,8 +181,6 @@ app.use((error, _req, res, _next) => {
   res.status(500).json({ error: 'Error interno del servidor' })
 })
 
-await ensureSchema()
-await seedIfEmpty()
 app.listen(port, () => {
   console.log(`VAELO API running on http://localhost:${port}`)
 })

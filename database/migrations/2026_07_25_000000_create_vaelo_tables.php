@@ -1,8 +1,6 @@
 <?php
 
 return [
-    "CREATE DATABASE IF NOT EXISTS vaelo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
-    "USE vaelo",
     "CREATE TABLE IF NOT EXISTS admins (
         id INT AUTO_INCREMENT PRIMARY KEY,
         email VARCHAR(190) NOT NULL UNIQUE,

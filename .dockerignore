@@ -3,6 +3,8 @@ node_modules_broken
 dist
 .git
 .env
+.env.local
+.env.*.local
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*

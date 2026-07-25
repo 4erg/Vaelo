@@ -2,7 +2,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY package.json ./
+RUN apk add --no-cache php php-pdo php-pdo_mysql php-mbstring php-openssl
+
+COPY package*.json ./
 RUN npm install
 
 COPY . .

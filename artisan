@@ -35,8 +35,8 @@ function dbConfig(): array
     return [
         'host' => $env['DB_HOST'] ?? '127.0.0.1',
         'port' => (int) ($env['DB_PORT'] ?? 3306),
-        'database' => $env['DB_NAME'] ?? 'vaelo',
-        'username' => $env['DB_USER'] ?? 'root',
+        'database' => $env['DB_DATABASE'] ?? 'db_vaelo',
+        'username' => $env['DB_USERNAME'] ?? 'vaelo',
         'password' => $env['DB_PASSWORD'] ?? '',
     ];
 }
@@ -76,9 +76,13 @@ function migrate(): void
         return;
     }
 
-    $rootConnection = pdo();
     $db = dbConfig()['database'];
-    $rootConnection->exec("CREATE DATABASE IF NOT EXISTS `{$db}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    try {
+        pdo()->exec("CREATE DATABASE IF NOT EXISTS `{$db}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    } catch (PDOException) {
+        // Shared production databases often do not allow CREATE DATABASE.
+        // If DB_DATABASE already exists, the next connection will succeed.
+    }
 
     $connection = pdo($db);
     $connection->exec(
