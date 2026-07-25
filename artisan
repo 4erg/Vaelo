@@ -30,14 +30,14 @@ function loadEnv(): array
 
 function dbConfig(): array
 {
-    $env = loadEnv();
+    $fileEnv = loadEnv();
 
     return [
-        'host' => $env['DB_HOST'] ?? '127.0.0.1',
-        'port' => (int) ($env['DB_PORT'] ?? 3306),
-        'database' => $env['DB_DATABASE'] ?? 'db_vaelo',
-        'username' => $env['DB_USERNAME'] ?? 'vaelo',
-        'password' => $env['DB_PASSWORD'] ?? '',
+        'host' => getenv('DB_HOST') ?: ($fileEnv['DB_HOST'] ?? '127.0.0.1'),
+        'port' => (int) (getenv('DB_PORT') ?: ($fileEnv['DB_PORT'] ?? 3306)),
+        'database' => getenv('DB_DATABASE') ?: ($fileEnv['DB_DATABASE'] ?? 'db_valeo'),
+        'username' => getenv('DB_USERNAME') ?: ($fileEnv['DB_USERNAME'] ?? 'vaelo'),
+        'password' => getenv('DB_PASSWORD') ?: ($fileEnv['DB_PASSWORD'] ?? ''),
     ];
 }
 
