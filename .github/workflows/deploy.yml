@@ -1,26 +1,29 @@
-name: Deploy VAELO
+- name: Avisar por Telegram
+  if: success()
+  env:
+    BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    REPOSITORY: ${{ github.repository }}
+    BRANCH: ${{ github.ref_name }}
+    COMMIT_SHA: ${{ github.sha }}
+    COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+    AUTHOR: ${{ github.actor }}
+  run: |
+    SHORT_SHA="${COMMIT_SHA:0:7}"
 
-on:
-  push:
-    branches:
-      - main
+    curl --fail --request POST \
+      "https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto" \
+      --data-urlencode "chat_id=${CHAT_ID}" \
+      --data-urlencode "photo=https://fastnetperu-vaelo.7xqmvz.easypanel.host/imgs/vaelo_icono.png" \
+      --data-urlencode "parse_mode=HTML" \
+      --data-urlencode "caption=🚀 <b>Nuevo despliegue de VAELO</b>
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    ✅ La orden de despliegue fue enviada correctamente.
 
-    steps:
-      - name: Activar deploy en EasyPanel
-        run: curl --fail --request POST "${{ secrets.EASYPANEL_DEPLOY_URL }}"
+    📦 <b>Repositorio:</b> ${REPOSITORY}
+    🌿 <b>Rama:</b> ${BRANCH}
+    🔖 <b>Commit:</b> <code>${SHORT_SHA}</code>
+    👤 <b>Autor:</b> ${AUTHOR}
 
-      - name: Avisar por Telegram
-        if: success()
-        run: |
-          curl --fail --request POST \
-            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-            --data-urlencode "text=✅ VAELO fue enviado a despliegue.
-
-          Rama: ${{ github.ref_name }}
-          Commit: ${{ github.event.head_commit.message }}
-          Autor: ${{ github.actor }}"
+    📝 <b>Cambios:</b>
+    ${COMMIT_MESSAGE}"
