@@ -12,3 +12,15 @@ jobs:
     steps:
       - name: Activar deploy en EasyPanel
         run: curl --fail --request POST "${{ secrets.EASYPANEL_DEPLOY_URL }}"
+
+      - name: Avisar por Telegram
+        if: success()
+        run: |
+          curl --fail --request POST \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            --data-urlencode "text=✅ VAELO fue enviado a despliegue.
+
+          Rama: ${{ github.ref_name }}
+          Commit: ${{ github.event.head_commit.message }}
+          Autor: ${{ github.actor }}"
