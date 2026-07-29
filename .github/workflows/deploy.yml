@@ -1,0 +1,14 @@
+name: Deploy VAELO
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Activar deploy en EasyPanel
+        run: curl --fail --request POST "${{ secrets.EASYPANEL_DEPLOY_URL }}"
