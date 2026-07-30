@@ -7,6 +7,44 @@ const BASE_PATH = __DIR__;
 
 $command = $argv[1] ?? 'list';
 
+function runNpmScript(string $script, ?int $port = null): void
+{
+    if ($port !== null) {
+        putenv("PORT={$port}");
+        $_ENV['PORT'] = (string) $port;
+        $_SERVER['PORT'] = (string) $port;
+    }
+
+    $isWindows = PHP_OS_FAMILY === 'Windows';
+    $npm = $isWindows ? 'npm.cmd' : 'npm';
+    passthru($npm . ' run ' . escapeshellarg($script), $exitCode);
+    exit((int) $exitCode);
+}
+
+function isPortInUse(int $port): bool
+{
+    $connection = @fsockopen('127.0.0.1', $port, $errorCode, $errorMessage, 0.2);
+    if ($connection === false) {
+        return false;
+    }
+
+    fclose($connection);
+    return true;
+}
+
+function serve(array $argv): void
+{
+    $port = isset($argv[2]) ? (int) $argv[2] : (int) (getenv('PORT') ?: (loadEnv()['PORT'] ?? 8443));
+
+    if (isPortInUse($port)) {
+        echo "VAELO dev server already running on http://localhost:{$port}\n";
+        echo "Use another port with: php artisan serve 8444\n";
+        return;
+    }
+
+    runNpmScript('dev', $port);
+}
+
 function loadEnv(): array
 {
     $envPath = BASE_PATH . DIRECTORY_SEPARATOR . '.env';
@@ -147,6 +185,9 @@ function seed(): void
 
 try {
     match ($command) {
+        'serve' => serve($argv),
+        'api:serve' => runNpmScript('dev:api'),
+        'build' => runNpmScript('build'),
         'migrate' => migrate(),
         'db:seed' => seed(),
         'migrate:fresh' => (function (): void {
@@ -155,7 +196,7 @@ try {
             migrate();
             seed();
         })(),
-        default => print "VAELO artisan commands:\n  php artisan migrate\n  php artisan db:seed\n  php artisan migrate:fresh\n",
+        default => print "VAELO artisan commands:\n  php artisan serve\n  php artisan api:serve\n  php artisan build\n  php artisan migrate\n  php artisan db:seed\n  php artisan migrate:fresh\n",
     };
 } catch (Throwable $error) {
     fwrite(STDERR, "Error: {$error->getMessage()}\n");
