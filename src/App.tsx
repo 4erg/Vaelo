@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 
-// â”€â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Data
 
 const PLATFORMS = [
   {
     id: 'android',
-    name: 'Android MÃ³vil',
+    name: 'Android Móvil',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
         <path d="M6.18 15.64a2.18 2.18 0 0 1-2.18 2.18C2.98 17.82 2 16.84 2 15.64V10h4.18zM14 19c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-1h4zM7 9H5v6h2zm12 0h-2v6h2zm-9-6.27V4c0-.55.45-1 1-1s1 .45 1 1v.73C14.42 5.13 16 6.92 16 9H8c0-2.08 1.58-3.87 3.64-4.27zM17.82 15.64a2.18 2.18 0 0 1-2.18 2.18V10H20v5.64z"/>
@@ -13,8 +13,8 @@ const PLATFORMS = [
     ),
     color: '#3DDC84',
     price: 299,
-    description: 'AplicaciÃ³n para telÃ©fonos y tablets Android.',
-    features: ['AplicaciÃ³n personalizada', 'Nombre y logotipo del cliente', 'Colores corporativos', 'Canales en vivo', 'PelÃ­culas y series', 'Reproductor integrado', 'APK o publicaciÃ³n en Google Play'],
+    description: 'Aplicación para teléfonos y tablets Android.',
+    features: ['Aplicación personalizada', 'Nombre y logotipo del cliente', 'Colores corporativos', 'Canales en vivo', 'Películas y series', 'Reproductor integrado', 'APK o publicación en Google Play'],
     cta: 'Elegir Android',
   },
   {
@@ -29,8 +29,8 @@ const PLATFORMS = [
     ),
     color: '#3DDC84',
     price: 349,
-    description: 'AplicaciÃ³n optimizada para televisores, TV Box y dispositivos con Android TV o Google TV.',
-    features: ['NavegaciÃ³n con control remoto', 'DiseÃ±o para pantalla grande', 'Reproductor integrado', 'Canales, pelÃ­culas y series', 'PersonalizaciÃ³n completa', 'APK para instalaciÃ³n directa'],
+    description: 'Aplicación optimizada para televisores, TV Box y dispositivos con Android TV o Google TV.',
+    features: ['Navegación con control remoto', 'Diseño para pantalla grande', 'Reproductor integrado', 'Canales, películas y series', 'Personalización completa', 'APK para instalación directa'],
     cta: 'Elegir Android TV',
   },
   {
@@ -43,8 +43,8 @@ const PLATFORMS = [
     ),
     color: '#A8B5C1',
     price: 499,
-    description: 'AplicaciÃ³n IPTV personalizada para dispositivos Apple con iOS y iPadOS.',
-    features: ['DiseÃ±o adaptado para iPhone y iPad', 'Reproductor compatible', 'PersonalizaciÃ³n de marca', 'PreparaciÃ³n para App Store', 'ConfiguraciÃ³n de cuenta de desarrollador por separado'],
+    description: 'Aplicación IPTV personalizada para dispositivos Apple con iOS y iPadOS.',
+    features: ['Diseño adaptado para iPhone y iPad', 'Reproductor compatible', 'Personalización de marca', 'Preparación para App Store', 'Configuración de cuenta de desarrollador por separado'],
     cta: 'Elegir iOS',
   },
   {
@@ -57,8 +57,8 @@ const PLATFORMS = [
     ),
     color: '#1428A0',
     price: 599,
-    description: 'AplicaciÃ³n para televisores Samsung compatibles con Tizen OS.',
-    features: ['NavegaciÃ³n con control remoto', 'Interfaz para televisores', 'IntegraciÃ³n con servidor IPTV', 'PreparaciÃ³n para Samsung Apps TV', 'RevisiÃ³n de compatibilidad'],
+    description: 'Aplicación para televisores Samsung compatibles con Tizen OS.',
+    features: ['Navegación con control remoto', 'Interfaz para televisores', 'Integración con servidor IPTV', 'Preparación para Samsung Apps TV', 'Revisión de compatibilidad'],
     cta: 'Elegir Samsung TV',
   },
   {
@@ -72,8 +72,8 @@ const PLATFORMS = [
     ),
     color: '#A50034',
     price: 599,
-    description: 'AplicaciÃ³n IPTV para televisores LG con webOS.',
-    features: ['DiseÃ±o para pantalla grande', 'Compatibilidad con control remoto', 'Reproductor optimizado', 'PreparaciÃ³n para LG Content Store', 'RevisiÃ³n de compatibilidad'],
+    description: 'Aplicación IPTV para televisores LG con webOS.',
+    features: ['Diseño para pantalla grande', 'Compatibilidad con control remoto', 'Reproductor optimizado', 'Preparación para LG Content Store', 'Revisión de compatibilidad'],
     cta: 'Elegir LG TV',
   },
   {
@@ -87,8 +87,8 @@ const PLATFORMS = [
     ),
     color: '#FF6B35',
     price: 449,
-    description: 'AplicaciÃ³n para televisores Hisense y otras marcas que utilizan VIDAA OS.',
-    features: ['DiseÃ±o personalizado', 'NavegaciÃ³n para Smart TV', 'IntegraciÃ³n IPTV', 'PreparaciÃ³n para tienda VIDAA', 'Compatibilidad sujeta al modelo'],
+    description: 'Aplicación para televisores Hisense y otras marcas que utilizan VIDAA OS.',
+    features: ['Diseño personalizado', 'Navegación para Smart TV', 'Integración IPTV', 'Preparación para tienda VIDAA', 'Compatibilidad sujeta al modelo'],
     cta: 'Elegir VIDAA',
   },
   {
@@ -102,8 +102,8 @@ const PLATFORMS = [
     ),
     color: '#6C63FF',
     price: 449,
-    description: 'AplicaciÃ³n para televisores compatibles con Titan OS.',
-    features: ['DiseÃ±o adaptado para televisiÃ³n', 'Marca personalizada', 'IntegraciÃ³n con API o servidor IPTV', 'EvaluaciÃ³n de publicaciÃ³n en la plataforma'],
+    description: 'Aplicación para televisores compatibles con Titan OS.',
+    features: ['Diseño adaptado para televisión', 'Marca personalizada', 'Integración con API o servidor IPTV', 'Evaluación de publicación en la plataforma'],
     cta: 'Elegir Titan OS',
   },
   {
@@ -116,13 +116,13 @@ const PLATFORMS = [
     ),
     color: '#0078D4',
     price: 299,
-    description: 'AplicaciÃ³n de escritorio para computadoras y laptops Windows.',
+    description: 'Aplicación de escritorio para computadoras y laptops Windows.',
     features: ['Instalador personalizado', 'Reproductor integrado', 'Pantalla completa', 'Actualizaciones', 'Logo, nombre y colores personalizados'],
     cta: 'Elegir Windows',
   },
   {
     id: 'web',
-    name: 'AplicaciÃ³n Web',
+    name: 'Aplicación Web',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
@@ -131,28 +131,28 @@ const PLATFORMS = [
     color: '#00CFFF',
     price: 399,
     description: 'Plataforma IPTV accesible desde un navegador web.',
-    features: ['DiseÃ±o responsive', 'Acceso mediante dominio personalizado', 'Compatible con todos los dispositivos', 'Panel de administraciÃ³n opcional', 'Reproductor web'],
+    features: ['Diseño responsive', 'Acceso mediante dominio personalizado', 'Compatible con todos los dispositivos', 'Panel de administración opcional', 'Reproductor web'],
     cta: 'Elegir Web',
   },
 ]
 
 const COMPARISON_FEATURES = [
-  'AplicaciÃ³n personalizada',
+  'Aplicación personalizada',
   'Canales en vivo',
-  'PelÃ­culas y series',
-  'GuÃ­a EPG',
+  'Películas y series',
+  'Guía EPG',
   'Control parental',
   'Favoritos',
-  'Inicio de sesiÃ³n',
-  'PublicaciÃ³n en tienda',
-  'InstalaciÃ³n mediante archivo',
+  'Inicio de sesión',
+  'Publicación en tienda',
+  'Instalación mediante archivo',
   'Control remoto',
-  'Pantallas tÃ¡ctiles',
+  'Pantallas táctiles',
   'Actualizaciones',
-  'Panel de administraciÃ³n',
+  'Panel de administración',
 ]
 
-// true = sÃ­, 'partial' = opcional, false = no
+// true = sí, 'partial' = opcional, false = no
 const COMPARISON_DATA: Record<string, (boolean | 'partial')[]> = {
   android:    [true, true, true, true, true, true, true, 'partial', true, false, true, true, 'partial'],
   androidtv:  [true, true, true, true, true, true, true, 'partial', true, true, false, true, 'partial'],
@@ -166,36 +166,36 @@ const COMPARISON_DATA: Record<string, (boolean | 'partial')[]> = {
 }
 
 const FAQS = [
-  { q: 'Â¿Cada plataforma tiene un precio diferente?', a: 'SÃ­. Cada sistema operativo requiere un desarrollo especÃ­fico con tecnologÃ­as distintas, por lo que cada plataforma tiene su propio precio base.' },
-  { q: 'Â¿Obtengo descuento si compro varias aplicaciones?', a: 'SÃ­. Al contratar 3 o mÃ¡s plataformas se aplica un descuento automÃ¡tico del 10%. Con 5 o mÃ¡s plataformas el descuento es del 15%, y con 7 o mÃ¡s del 20%.' },
-  { q: 'Â¿Puedo empezar solo con Android TV?', a: 'Por supuesto. Puedes contratar una sola plataforma y agregar mÃ¡s en el futuro a precio regular.' },
-  { q: 'Â¿DespuÃ©s puedo agregar Samsung o LG?', a: 'SÃ­. Las plataformas adicionales se pueden incorporar en cualquier momento sin necesidad de rehcer el trabajo ya realizado.' },
-  { q: 'Â¿El precio incluye la publicaciÃ³n en las tiendas?', a: 'La publicaciÃ³n en tiendas (Google Play, App Store, Samsung TV, etc.) es un servicio adicional con costo separado, ya que implica procesos externos a nuestro control.' },
-  { q: 'Â¿Necesito una cuenta de desarrollador?', a: 'Para publicar en tiendas oficiales (Google Play, App Store, Samsung) el cliente debe contar con su propia cuenta de desarrollador. Podemos orientarte en el proceso.' },
-  { q: 'Â¿La aplicaciÃ³n tendrÃ¡ mi nombre y logotipo?', a: 'SÃ­. La aplicaciÃ³n se desarrolla completamente con la identidad de tu empresa: nombre, Ã­cono, colores, pantalla de carga y todos los elementos visuales.' },
-  { q: 'Â¿Se puede conectar con cualquier panel IPTV?', a: 'Compatible con la mayorÃ­a de paneles IPTV del mercado. Evaluamos la integraciÃ³n durante la etapa de anÃ¡lisis del proyecto.' },
-  { q: 'Â¿Incluyen contenido, canales, pelÃ­culas o series?', a: 'No. Desarrollamos Ãºnicamente el software y la interfaz. El cliente es responsable del contenido y las licencias correspondientes.' },
-  { q: 'Â¿CuÃ¡nto demora el desarrollo?', a: 'Depende de las plataformas y el nivel de personalizaciÃ³n. Un proyecto tÃ­pico de 2-3 plataformas demora entre 4 y 8 semanas.' },
-  { q: 'Â¿Ofrecen mantenimiento mensual?', a: 'SÃ­. Contamos con planes de mantenimiento que incluyen actualizaciones, correcciÃ³n de errores y soporte tÃ©cnico. Consulta precios por separado.' },
-  { q: 'Â¿QuÃ© ocurre si una tienda rechaza la aplicaciÃ³n?', a: 'Revisamos el motivo del rechazo y realizamos los ajustes necesarios. Si el rechazo es por polÃ­ticas de contenido, es responsabilidad del cliente adecuarse a esas normas.' },
+  { q: '¿Cada plataforma tiene un precio diferente?', a: 'Sí. Cada sistema operativo requiere un desarrollo específico con tecnologías distintas, por lo que cada plataforma tiene su propio precio base.' },
+  { q: '¿Obtengo descuento si compro varias aplicaciones?', a: 'Sí. Al contratar 3 o más plataformas se aplica un descuento automático del 10%. Con 5 o más plataformas el descuento es del 15%, y con 7 o más del 20%.' },
+  { q: '¿Puedo empezar solo con Android TV?', a: 'Por supuesto. Puedes contratar una sola plataforma y agregar más en el futuro a precio regular.' },
+  { q: '¿Después puedo agregar Samsung o LG?', a: 'Sí. Las plataformas adicionales se pueden incorporar en cualquier momento sin necesidad de rehcer el trabajo ya realizado.' },
+  { q: '¿El precio incluye la publicación en las tiendas?', a: 'La publicación en tiendas (Google Play, App Store, Samsung TV, etc.) es un servicio adicional con costo separado, ya que implica procesos externos a nuestro control.' },
+  { q: '¿Necesito una cuenta de desarrollador?', a: 'Para publicar en tiendas oficiales (Google Play, App Store, Samsung) el cliente debe contar con su propia cuenta de desarrollador. Podemos orientarte en el proceso.' },
+  { q: '¿La aplicación tendrá mi nombre y logotipo?', a: 'Sí. La aplicación se desarrolla completamente con la identidad de tu empresa: nombre, ícono, colores, pantalla de carga y todos los elementos visuales.' },
+  { q: '¿Se puede conectar con cualquier panel IPTV?', a: 'Compatible con la mayoría de paneles IPTV del mercado. Evaluamos la integración durante la etapa de análisis del proyecto.' },
+  { q: '¿Incluyen contenido, canales, películas o series?', a: 'No. Desarrollamos únicamente el software y la interfaz. El cliente es responsable del contenido y las licencias correspondientes.' },
+  { q: '¿Cuánto demora el desarrollo?', a: 'Depende de las plataformas y el nivel de personalización. Un proyecto típico de 2-3 plataformas demora entre 4 y 8 semanas.' },
+  { q: '¿Ofrecen mantenimiento mensual?', a: 'Sí. Contamos con planes de mantenimiento que incluyen actualizaciones, corrección de errores y soporte técnico. Consulta precios por separado.' },
+  { q: '¿Qué ocurre si una tienda rechaza la aplicación?', a: 'Revisamos el motivo del rechazo y realizamos los ajustes necesarios. Si el rechazo es por políticas de contenido, es responsabilidad del cliente adecuarse a esas normas.' },
 ]
 
 const ADDITIONAL_SERVICES = [
-  { name: 'PublicaciÃ³n en Google Play', price: 'Desde US$199' },
-  { name: 'PublicaciÃ³n en App Store', price: 'Desde US$299' },
-  { name: 'PublicaciÃ³n en Samsung TV', price: 'Desde US$399' },
-  { name: 'PublicaciÃ³n en LG Content Store', price: 'Desde US$399' },
-  { name: 'PublicaciÃ³n en VIDAA', price: 'CotizaciÃ³n personalizada' },
-  { name: 'Panel de administraciÃ³n', price: 'Desde US$499' },
+  { name: 'Publicación en Google Play', price: 'Desde US$199' },
+  { name: 'Publicación en App Store', price: 'Desde US$299' },
+  { name: 'Publicación en Samsung TV', price: 'Desde US$399' },
+  { name: 'Publicación en LG Content Store', price: 'Desde US$399' },
+  { name: 'Publicación en VIDAA', price: 'Cotización personalizada' },
+  { name: 'Panel de administración', price: 'Desde US$499' },
   { name: 'Sistema de banners', price: 'Desde US$199' },
   { name: 'Notificaciones push', price: 'Desde US$149' },
-  { name: 'Dominio personalizado', price: 'Desde US$49/aÃ±o' },
+  { name: 'Dominio personalizado', price: 'Desde US$49/año' },
   { name: 'Hosting', price: 'Desde US$29/mes' },
   { name: 'Mantenimiento mensual', price: 'Desde US$99/mes' },
   { name: 'Actualizaciones futuras', price: 'Desde US$149' },
-  { name: 'IntegraciÃ³n con API personalizada', price: 'CotizaciÃ³n personalizada' },
-  { name: 'MigraciÃ³n desde otra aplicaciÃ³n', price: 'CotizaciÃ³n personalizada' },
-  { name: 'DiseÃ±o exclusivo desde cero', price: 'CotizaciÃ³n personalizada' },
+  { name: 'Integración con API personalizada', price: 'Cotización personalizada' },
+  { name: 'Migración desde otra aplicación', price: 'Cotización personalizada' },
+  { name: 'Diseño exclusivo desde cero', price: 'Cotización personalizada' },
 ]
 
 const ADMIN_SESSION_KEY = 'vaelo_admin_session'
@@ -355,6 +355,19 @@ function getManagedServices() {
   return getLocalDb().services.filter(service => service.enabled)
 }
 
+function getContactSettings() {
+  return getLocalDb().contactSettings
+}
+
+function getWhatsappHref(message = 'Hola, quiero cotizar una app IPTV white-label con VAELO.') {
+  const digits = getContactSettings().whatsapp.replace(/\D/g, '')
+  return digits ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}` : '/contacto'
+}
+
+function getMailHref(subject = 'Cotización VAELO') {
+  return `mailto:${getContactSettings().email}?subject=${encodeURIComponent(subject)}`
+}
+
 function getPlatformBySlug(slug: string) {
   return getManagedPlatforms().find(platform => PLATFORM_SLUGS[platform.id] === slug)
 }
@@ -507,7 +520,7 @@ function seedLocalDb(): LocalDb {
       contactSettings: parsed.contactSettings ?? {
         email: 'ventas@vaelo.com',
         whatsapp: '+51 999 999 999',
-        country: 'PerÃº',
+        country: 'Perú',
         responseTime: '24 horas',
       },
     }
@@ -531,7 +544,7 @@ function seedLocalDb(): LocalDb {
     contactSettings: {
       email: 'ventas@vaelo.com',
       whatsapp: '+51 999 999 999',
-      country: 'PerÃº',
+      country: 'Perú',
       responseTime: '24 horas',
     },
     quotes: [
@@ -542,7 +555,7 @@ function seedLocalDb(): LocalDb {
         email: 'carlos@mitv.com',
         whatsapp: '+52 55 1234 5678',
         platforms: ['androidtv', 'web', 'samsung'],
-        services: ['Panel de administraciÃƒÂ³n', 'Hosting'],
+        services: ['Panel de administración', 'Hosting'],
         appName: 'MiTV GO',
         website: 'https://mitv.example',
         status: 'Nuevo',
@@ -618,7 +631,7 @@ function getAdminSession() {
   return value ? JSON.parse(value) as { email: string; loggedAt: string } : null
 }
 
-// â”€â”€â”€ Components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Components
 
 function Logo() {
   return (
@@ -642,7 +655,7 @@ function Navbar() {
   const links = [
     { label: 'Inicio', href: '/' },
     { label: 'Plataformas', href: '/plataformas' },
-    { label: 'PersonalizaciÃ³n', href: '/personalizacion' },
+    { label: 'Personalización', href: '/personalizacion' },
     { label: 'Servicios', href: '/servicios' },
     { label: 'Precios', href: '/precios' },
     { label: 'Proceso', href: '/proceso' },
@@ -675,7 +688,7 @@ function Navbar() {
           <div className="flex items-center gap-3">
             <a href="/admin/login" className="nav-link" style={pathname.startsWith('/admin') ? { color: '#2B7FFF' } : undefined}>Admin</a>
             <a href="/contacto" className="btn-primary px-5 py-2 rounded-lg text-sm text-white">
-              <span>Solicitar cotizaciÃ³n</span>
+              <span>Solicitar cotización</span>
             </a>
           </div>
         </div>
@@ -698,7 +711,7 @@ function Navbar() {
             <a key={l.href} href={l.href} className="block nav-link py-2" style={navStyle(l.href)} onClick={() => setOpen(false)}>{l.label}</a>
           ))}
           <a href="/contacto" className="btn-primary block text-center px-5 py-2.5 rounded-lg text-sm text-white mt-4">
-            <span>Solicitar cotizaciÃ³n</span>
+            <span>Solicitar cotización</span>
           </a>
           <a href="/admin/login" className="block nav-link py-2 text-center" style={pathname.startsWith('/admin') ? { color: '#2B7FFF' } : undefined}>Admin</a>
         </div>
@@ -717,7 +730,7 @@ function DeviceMockup() {
             <div className="rounded-lg overflow-hidden" style={{ height: 110, background: '#EEF2FF' }}>
               <div className="flex h-full">
                 <div className="w-1/3 border-r p-2 space-y-1" style={{ borderColor: '#E2E8F8' }}>
-                  {['Inicio','Canales','PelÃ­.','Series','Config.'].map(t => (
+                  {['Inicio','Canales','Pelí.','Series','Config.'].map(t => (
                     <div key={t} className="text-xs px-2 py-1 rounded font-display font-500" style={{ background: t==='Canales' ? '#2B7FFF' : 'transparent', color: t==='Canales' ? '#fff' : '#8899BB' }}>{t}</div>
                   ))}
                 </div>
@@ -789,14 +802,14 @@ function DeviceMockup() {
           <div className="rounded-t-xl overflow-hidden" style={{ width: 160, height: 100, background: '#fff', boxShadow: '0 8px 30px rgba(43,127,255,0.12)', border: '1.5px solid #E8EEF8' }}>
             <div className="flex h-full">
               <div className="border-r p-1.5 space-y-1" style={{ width: 40, borderColor: '#E8EEF8', background: '#F4F7FF' }}>
-                {['â–¶','ðŸ“‹','â­','ðŸ‘¤'].map(i => (
+                {['▶','Lista','★','User'].map(i => (
                   <div key={i} className="text-center" style={{ fontSize: 10 }}>{i}</div>
                 ))}
               </div>
               <div className="flex-1 p-1.5">
                 <div className="rounded mb-1.5" style={{ height: 40, background: 'linear-gradient(135deg, #2B7FFF, #1A5FCC)' }}>
                   <div className="flex items-end h-full p-1">
-                    <div className="text-white font-display font-700" style={{ fontSize: 7 }}>â–º En vivo ahora</div>
+                    <div className="text-white font-display font-700" style={{ fontSize: 7 }}>▶ En vivo ahora</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-1">
@@ -839,7 +852,7 @@ function Hero() {
           <div>
             <div className="section-label mb-5 hero-kicker">Soluciones IPTV White-Label</div>
             <h1 className="font-display font-800 leading-tight mb-6 hero-title" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: '#0D1B3E' }}>
-              Tu propia aplicaciÃ³n IPTV para{' '}
+              Tu propia aplicación IPTV para{' '}
               <span className="gradient-text">televisores, celulares y computadoras</span>
             </h1>
             <p className="text-lg mb-8 leading-relaxed hero-copy" style={{ color: '#4A5B7A', maxWidth: 520 }}>
@@ -850,7 +863,7 @@ function Hero() {
                 <span>Ver plataformas y precios</span>
               </a>
               <a href="/contacto" className="btn-outline px-6 py-3 rounded-xl text-sm">
-                Solicitar demostraciÃ³n
+                Solicitar demostración
               </a>
             </div>
             <div className="flex gap-8 mt-12 pt-8 hero-stats" style={{ borderTop: '1.5px solid #E8EEF8' }}>
@@ -881,11 +894,11 @@ function StrongDeviceMockup() {
 
         <div className="hero-floating-card hero-floating-card-a">
           <strong>En vivo</strong>
-          <span>Canal 01 Â· Canal 02</span>
+          <span>Canal 01 · Canal 02</span>
         </div>
         <div className="hero-floating-card hero-floating-card-b">
           <strong>Tu marca</strong>
-          <span>Series Â· Pelicula destacada</span>
+          <span>Series · Pelicula destacada</span>
         </div>
 
         <div className="hero-device hero-laptop-frame">
@@ -994,6 +1007,11 @@ function StrongHero() {
       ),
     },
   ]
+  const heroSignals = [
+    ['Desde US$299', 'Precio base por plataforma'],
+    ['4-8 semanas', 'Entrega típica'],
+    ['Android, TV, iOS, Web', 'Cobertura comercial'],
+  ]
 
   return (
     <section id="hero" className="relative pt-28 pb-8 px-6 overflow-hidden min-h-[calc(88vh-5rem)] flex items-center hero-surface">
@@ -1006,26 +1024,34 @@ function StrongHero() {
           <div className="hero-copy-column">
             <div className="section-label mb-5 hero-kicker">Soluciones IPTV White-Label</div>
             <h1 className="font-display font-800 leading-[1.04] mb-6 hero-title hero-title-balance" style={{ fontSize: 'clamp(2rem, 4.35vw, 3.55rem)', color: '#09162D' }}>
-              Tu propia aplicacion IPTV
+              Tu propia aplicación IPTV
               <br />
               para <span className="hero-title-highlight">televisores,</span>
               <br />
               <span className="hero-title-highlight">celulares y computadoras</span>
             </h1>
             <p className="text-[1.05rem] mb-8 leading-relaxed hero-copy hero-copy-width" style={{ color: '#425370' }}>
-              Desarrollamos aplicaciones personalizadas con el nombre, logotipo, colores y funciones de tu empresa. Elige las plataformas que necesitas y construye una solucion adaptada a tu negocio.
+              Desarrollamos aplicaciones personalizadas con el nombre, logotipo, colores y funciones de tu empresa. Elige las plataformas que necesitas y construye una solución adaptada a tu negocio.
             </p>
+            <div className="hero-signal-strip hero-copy">
+              {heroSignals.map(([value, label]) => (
+                <div key={value}>
+                  <strong>{value}</strong>
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
             <div className="flex flex-wrap gap-4 hero-actions">
               <a href="/plataformas" className="btn-primary px-6 py-3.5 rounded-2xl text-white text-sm hero-cta-main">
                 <span>Ver plataformas y precios</span>
               </a>
               <a href="/contacto" className="btn-outline px-6 py-3.5 rounded-2xl text-sm hero-cta-secondary">
-                Solicitar demostracion
+                Solicitar demostración
               </a>
             </div>
             <div className="hero-trust-row">
               <span className="hero-trust-dot" />
-              <p style={{ color: '#465A78' }}>Cotizacion orientada a operadores, ISPs, cableoperadores y marcas IPTV privadas.</p>
+              <p style={{ color: '#465A78' }}>Cotización orientada a operadores, ISPs, cableoperadores y marcas IPTV privadas.</p>
             </div>
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mt-8 hero-stats">
               {heroStats.map(item => (
@@ -1096,6 +1122,88 @@ function HomePlatformsBand({ platforms }: { platforms: typeof PLATFORMS }) {
                 <p>{getPlatformCategory(platform.id)}</p>
               </div>
             </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function HomeTrustSection() {
+  const contact = getContactSettings()
+  const trustItems = [
+    ['Proyecto white-label', 'Nombre, icono, colores, splash screen y experiencia con tu identidad.'],
+    ['Alcance claro', 'Cotización separada por plataformas, servicios, publicación y mantenimiento.'],
+    ['Entrega por etapas', 'Validación visual, integración técnica, pruebas y soporte inicial.'],
+    ['Contacto comercial', `${contact.country} · respuesta estimada en ${contact.responseTime}.`],
+  ]
+
+  return (
+    <section className="home-trust-section px-6 py-18">
+      <div className="max-w-7xl mx-auto">
+        <div className="home-trust-panel">
+          <div className="home-trust-copy">
+            <div className="section-label mb-3">Confianza comercial</div>
+            <h2 className="font-display font-800">
+              Que el cliente vea una empresa seria desde el primer minuto.
+            </h2>
+            <p>
+              La web no solo muestra plataformas: deja claro qué se entrega, cómo se cotiza y por qué VAELO puede acompañar un lanzamiento IPTV con marca propia.
+            </p>
+            <div className="home-trust-actions">
+              <a href={getWhatsappHref()} target="_blank" rel="noreferrer" className="btn-primary px-6 py-3 rounded-xl text-sm text-white">
+                <span>Hablar por WhatsApp</span>
+              </a>
+              <a href="/precios" className="btn-outline px-6 py-3 rounded-xl text-sm">
+                Calcular paquete
+              </a>
+            </div>
+          </div>
+          <div className="home-trust-grid">
+            {trustItems.map(([title, desc]) => (
+              <div key={title} className="home-trust-card">
+                <span />
+                <strong>{title}</strong>
+                <p>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function HomeUseCases() {
+  const cases = [
+    ['Proveedores IPTV', 'Apps con marca propia para usuarios finales en móvil, TV y web.'],
+    ['Cableoperadores', 'Experiencia moderna para paquetes digitales, soporte y expansión.'],
+    ['ISPs', 'Servicio complementario para clientes residenciales o empresariales.'],
+    ['Revendedores', 'Producto visualmente más sólido para vender con mayor confianza.'],
+  ]
+
+  return (
+    <section className="home-usecase-section px-6 py-22">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-10">
+          <div>
+            <div className="section-label mb-3">Casos de uso</div>
+            <h2 className="font-display font-800">
+              Pensado para negocios que necesitan vender IPTV como producto.
+            </h2>
+          </div>
+          <a href={getWhatsappHref('Hola, quiero saber qué paquete VAELO conviene para mi negocio IPTV.')} target="_blank" rel="noreferrer" className="btn-outline inline-block px-6 py-3 rounded-xl text-sm">
+            Consultar mi caso
+          </a>
+        </div>
+        <div className="home-usecase-grid">
+          {cases.map(([title, desc], index) => (
+            <article key={title} className="home-usecase-card">
+              <div className="home-usecase-number">{String(index + 1).padStart(2, '0')}</div>
+              <h3>{title}</h3>
+              <p>{desc}</p>
+              <a href="/contacto">Solicitar propuesta</a>
+            </article>
           ))}
         </div>
       </div>
@@ -1201,7 +1309,7 @@ function PlatformSection() {
             Elige las plataformas que necesitas
           </h2>
           <p style={{ color: '#4A5B7A', maxWidth: 540, margin: '0 auto' }}>
-            Cada plataforma se desarrolla de forma independiente con tecnologÃ­a especÃ­fica. Cada una tiene su propio precio.
+            Cada plataforma se desarrolla de forma independiente con tecnología específica. Cada una tiene su propio precio.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1250,7 +1358,7 @@ function PlatformDetailPage({ platform }: { platform: typeof PLATFORMS[0] }) {
             <p className="text-xs font-display font-600 uppercase mb-1" style={{ color: '#7A8BAA' }}>Precio base</p>
             <div className="font-display font-800 text-4xl mb-4" style={{ color: '#0D1B3E' }}>US${platform.price}</div>
             <p className="text-sm leading-relaxed mb-6" style={{ color: '#4A5B7A' }}>
-              Incluye desarrollo white-label, identidad visual base, reproductor e integraciÃ³n inicial con tu sistema IPTV.
+              Incluye desarrollo white-label, identidad visual base, reproductor e integración inicial con tu sistema IPTV.
             </p>
             <a href="/contacto" className="btn-primary block text-center py-3 rounded-xl text-white mb-3">
               <span>Cotizar {platform.name}</span>
@@ -1340,6 +1448,8 @@ function HomePage() {
     <>
       <StrongHero />
       <HomePlatformsBand platforms={allPlatforms} />
+      <HomeTrustSection />
+      <HomeUseCases />
       <section className="py-16 px-6 premium-band">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-10">
@@ -1520,7 +1630,7 @@ function PackageBuilder() {
             Arma tu paquete <span className="gradient-text">multiplataforma</span>
           </h2>
           <p style={{ color: '#4A5B7A', maxWidth: 520, margin: '0 auto' }}>
-            Selecciona las plataformas que necesitas. El precio se actualiza en tiempo real con descuentos automÃ¡ticos.
+            Selecciona las plataformas que necesitas. El precio se actualiza en tiempo real con descuentos automáticos.
           </p>
         </div>
 
@@ -1564,18 +1674,18 @@ function PackageBuilder() {
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clipRule="evenodd"/>
                 </svg>
-                Â¡Descuento multiplataforma aplicado! {(discountPct * 100).toFixed(0)}% off por {count} plataformas
+                ¡Descuento multiplataforma aplicado! {(discountPct * 100).toFixed(0)}% off por {count} plataformas
               </div>
             )}
           </div>
 
           <div className="lg:col-span-2">
             <div className="sticky top-24 rounded-2xl p-6" style={{ background: '#fff', border: '1.5px solid #E8EEF8', boxShadow: '0 8px 32px rgba(43,127,255,0.08)' }}>
-              <h3 className="font-display font-700 text-lg mb-5" style={{ color: '#0D1B3E' }}>Resumen de cotizaciÃ³n</h3>
+              <h3 className="font-display font-700 text-lg mb-5" style={{ color: '#0D1B3E' }}>Resumen de cotización</h3>
 
               {count === 0 ? (
                 <p className="text-sm text-center py-8" style={{ color: '#7A8BAA' }}>
-                  Selecciona una o mÃ¡s plataformas para ver el estimado
+                  Selecciona una o más plataformas para ver el estimado
                 </p>
               ) : (
                 <>
@@ -1607,10 +1717,10 @@ function PackageBuilder() {
               )}
 
               <a href="/contacto" className="btn-primary w-full block text-center py-3 rounded-xl text-sm text-white mt-6">
-                <span>{count === 0 ? 'Solicitar cotizaciÃ³n' : 'Solicitar este paquete'}</span>
+                <span>{count === 0 ? 'Solicitar cotización' : 'Solicitar este paquete'}</span>
               </a>
               <p className="text-xs mt-3 text-center leading-relaxed" style={{ color: '#9AAABB' }}>
-                El precio final puede variar segÃºn las funciones, diseÃ±o, servidor IPTV y requisitos de publicaciÃ³n.
+                El precio final puede variar según las funciones, diseño, servidor IPTV y requisitos de publicación.
               </p>
             </div>
           </div>
@@ -1644,10 +1754,10 @@ function ComparisonTable() {
         <div className="text-center mb-14">
           <div className="section-label mb-3">Comparativa</div>
           <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#0D1B3E' }}>
-            ComparaciÃ³n de plataformas
+            Comparación de plataformas
           </h2>
           <p style={{ color: '#4A5B7A', maxWidth: 500, margin: '0 auto' }}>
-            Identifica quÃ© funciones estÃ¡n disponibles en cada sistema operativo.
+            Identifica qué funciones están disponibles en cada sistema operativo.
           </p>
         </div>
 
@@ -1655,7 +1765,7 @@ function ComparisonTable() {
           <table className="w-full" style={{ minWidth: 900 }}>
             <thead>
               <tr style={{ background: '#F4F7FF', borderBottom: '1.5px solid #E8EEF8' }}>
-                <th className="text-left px-5 py-4 font-display font-600 text-sm w-48" style={{ color: '#4A5B7A' }}>FunciÃ³n</th>
+                <th className="text-left px-5 py-4 font-display font-600 text-sm w-48" style={{ color: '#4A5B7A' }}>Función</th>
                 {platforms.map(p => (
                   <th key={p.id} className="px-3 py-4 text-center" style={{ minWidth: 90 }}>
                     <div className="font-display font-600" style={{ fontSize: 11, lineHeight: 1.3, color: '#0D1B3E' }}>{p.name}</div>
@@ -1681,9 +1791,9 @@ function ComparisonTable() {
           </table>
         </div>
         <div className="flex gap-6 justify-center mt-5 text-xs" style={{ color: '#7A8BAA' }}>
-          <span className="flex items-center gap-1.5"><span className="feature-check text-base">âœ“</span> Incluido</span>
-          <span className="flex items-center gap-1.5"><span className="feature-partial text-base">â“˜</span> Opcional</span>
-          <span className="flex items-center gap-1.5"><span className="feature-no text-base">âœ—</span> No disponible</span>
+          <span className="flex items-center gap-1.5"><span className="feature-check text-base">✓</span> Incluido</span>
+          <span className="flex items-center gap-1.5"><span className="feature-partial text-base">i</span> Opcional</span>
+          <span className="flex items-center gap-1.5"><span className="feature-no text-base">×</span> No disponible</span>
         </div>
       </div>
     </section>
@@ -1692,18 +1802,18 @@ function ComparisonTable() {
 
 function Customization() {
   const items = [
-    'Nombre de la aplicaciÃ³n', 'Logotipo', 'Ãcono personalizado', 'Colores corporativos',
-    'Pantalla de carga', 'Fondos y banners', 'MenÃº principal', 'Banners promocionales',
-    'DiseÃ±o de canales', 'DiseÃ±o de pelÃ­culas', 'WhatsApp de soporte', 'Dominio personalizado',
+    'Nombre de la aplicación', 'Logotipo', 'Ícono personalizado', 'Colores corporativos',
+    'Pantalla de carga', 'Fondos y banners', 'Menú principal', 'Banners promocionales',
+    'Diseño de canales', 'Diseño de películas', 'WhatsApp de soporte', 'Dominio personalizado',
   ]
 
   return (
     <section id="customization" className="py-24 px-6" style={{ background: '#F7FAFF' }}>
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14">
-          <div className="section-label mb-3">PersonalizaciÃ³n total</div>
+          <div className="section-label mb-3">Personalización total</div>
           <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#0D1B3E' }}>
-            Una aplicaciÃ³n <span className="gradient-text">completamente adaptada</span> a tu marca
+            Una aplicación <span className="gradient-text">completamente adaptada</span> a tu marca
           </h2>
         </div>
 
@@ -1730,12 +1840,12 @@ function Customization() {
                 <div className="w-2 h-2 rounded-full bg-red-400/70" />
                 <div className="w-2 h-2 rounded-full bg-yellow-400/70" />
                 <div className="w-2 h-2 rounded-full bg-green-400/70" />
-                <span className="text-xs ml-2 font-display font-500" style={{ color: '#7A8BAA' }}>App GenÃ©rica</span>
+                <span className="text-xs ml-2 font-display font-500" style={{ color: '#7A8BAA' }}>App Genérica</span>
               </div>
               <div className="p-4 bg-white">
                 <div className="text-center mb-3">
                   <div className="w-10 h-10 mx-auto rounded-xl flex items-center justify-center mb-1" style={{ background: '#F0F4FF' }}>
-                    <span className="text-lg">â–¶</span>
+                    <span className="text-lg">▶</span>
                   </div>
                   <div className="text-sm" style={{ color: '#9AAABB' }}>IPTV Player</div>
                 </div>
@@ -1793,7 +1903,7 @@ function AdditionalServices() {
             Complementa tu proyecto
           </h2>
           <p style={{ color: '#4A5B7A', maxWidth: 480, margin: '0 auto' }}>
-            Servicios opcionales para publicaciÃ³n, administraciÃ³n y mantenimiento de tu aplicaciÃ³n.
+            Servicios opcionales para publicación, administración y mantenimiento de tu aplicación.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -2095,7 +2205,7 @@ function EnhancedAdditionalServices() {
 
 function EnhancedCustomization() {
   const [brandName, setBrandName] = useState('VAELO Prime')
-  const [tagline, setTagline] = useState('Canales Â· Peliculas Â· Series')
+  const [tagline, setTagline] = useState('Canales · Peliculas · Series')
   const [selectedColor, setSelectedColor] = useState('#2B7FFF')
   const [secondaryColor, setSecondaryColor] = useState('#0D1B3E')
   const [previewDevice, setPreviewDevice] = useState<'tv' | 'phone'>('tv')
@@ -2110,7 +2220,7 @@ function EnhancedCustomization() {
     'Splash y pantalla de carga',
     'Banners promocionales',
     'Menu principal',
-    'DiseÃ±o de canales, peliculas y series',
+    'Diseño de canales, peliculas y series',
     'Dominio y soporte de contacto',
   ]
 
@@ -2231,7 +2341,7 @@ function EnhancedCustomization() {
                       {logoPreview ? <img src={logoPreview} alt="" /> : <strong>{brandName.slice(0, 1).toUpperCase()}</strong>}
                     </div>
                     <div className="custom-phone-search">Buscar</div>
-                    <button type="button">↻</button>
+                    <button type="button">×</button>
                     <button type="button">60</button>
                     <button type="button">?</button>
                   </div>
@@ -2245,34 +2355,34 @@ function EnhancedCustomization() {
                         <strong>{brandName || 'America TV HD'}</strong>
                         <div className="custom-phone-actions">
                           <button type="button">▶ Reproducir</button>
-                          <button type="button">ⓘ Detalles</button>
+                          <button type="button">i Detalles</button>
                         </div>
                         <small>Toca un boton para reproducir o ver detalles</small>
                       </div>
-                      <div className="custom-phone-channel-logo" style={{ color: selectedColor }}>◎</div>
+                      <div className="custom-phone-channel-logo" style={{ color: selectedColor }}>TV</div>
                     </div>
                   </div>
                   <div className="custom-phone-section">
-                    <h4 style={{ color: selectedColor }}>☆ <span>Canales favoritos</span></h4>
+                    <h4 style={{ color: selectedColor }}> <span>Canales favoritos</span></h4>
                     <div className="custom-phone-card-row">
                       {['LATINA HD', 'AMERICA TV HD', 'ATV HD'].map((item, index) => (
                         <div key={item} className="custom-phone-mini-card">
                           <b>LIVE</b>
-                          <i style={{ color: index === 1 ? selectedColor : undefined }}>{index === 0 ? 'L' : index === 1 ? '◎' : 'ATV'}</i>
+                          <i style={{ color: index === 1 ? selectedColor : undefined }}>{index === 0 ? 'L' : index === 1 ? 'A' : 'ATV'}</i>
                           <strong>{item}</strong>
                         </div>
                       ))}
                     </div>
                   </div>
                   <div className="custom-phone-section">
-                    <h4 style={{ color: selectedColor }}>☆ <span>Peliculas recomendadas</span></h4>
+                    <h4 style={{ color: selectedColor }}> <span>Peliculas recomendadas</span></h4>
                     <div className="custom-phone-movie-row">
                       {[1, 2].map(i => <div key={i}><span>VER</span></div>)}
                     </div>
                   </div>
                   <div className="custom-phone-nav">
                     {['Inicio', 'TV en vivo', 'Peliculas', 'Series', 'Favoritos', 'Ajustes'].map((item, index) => (
-                      <span key={item} style={{ color: index === 0 ? selectedColor : undefined }}>{index === 0 ? '⌂' : index === 1 ? '▣' : index === 2 ? '▦' : index === 3 ? '▤' : index === 4 ? '♡' : '⚙'}<small>{item}</small></span>
+                      <span key={item} style={{ color: index === 0 ? selectedColor : undefined }}>{index === 0 ? 'H' : index === 1 ? 'C' : index === 2 ? 'M' : index === 3 ? 'S' : index === 4 ? 'A' : 'P'}<small>{item}</small></span>
                     ))}
                   </div>
                 </div>
@@ -2435,12 +2545,12 @@ function EnhancedPackageBuilder() {
             <div className="quote-total-panel mt-6">
               <span>Total estimado</span>
               <strong>US${estimate.estimatedTotal}</strong>
-              <p>Pago inicial sugerido: US${estimate.suggestedDeposit} Â· saldo: US${estimate.remainingBalance}</p>
+              <p>Pago inicial sugerido: US${estimate.suggestedDeposit} · saldo: US${estimate.remainingBalance}</p>
             </div>
 
             <div className="mt-6 space-y-3">
               <div className="text-sm" style={{ color: '#60708A' }}>
-                Reglas de descuento activas: {db.discountRules.map(rule => `${rule.minPlatforms}+ (${rule.discountPct}%)`).join(' Â· ')}
+                Reglas de descuento activas: {db.discountRules.map(rule => `${rule.minPlatforms}+ (${rule.discountPct}%)`).join(' · ')}
               </div>
               <a href="/contacto" className="btn-primary block text-center py-3 rounded-xl text-white">
                 <span>Continuar a cotizacion</span>
@@ -2448,7 +2558,7 @@ function EnhancedPackageBuilder() {
             </div>
 
             <p className="text-xs mt-4 leading-relaxed" style={{ color: '#7A8BAA' }}>
-              Precio estimado. El valor final puede variar segun funciones, diseÃ±o, servidor IPTV, publicacion y requisitos tecnicos.
+              Precio estimado. El valor final puede variar segun funciones, diseño, servidor IPTV, publicacion y requisitos tecnicos.
             </p>
           </aside>
         </div>
@@ -2667,7 +2777,7 @@ function EnhancedQuoteForm() {
 
             <label className="admin-field">
               <span>Descripcion del proyecto</span>
-              <textarea value={form.description} rows={5} placeholder="CuÃ©ntanos objetivos, alcance, servidores, branding, idiomas o cualquier restriccion importante." onChange={e => setField('description', e.target.value)} className="admin-select" />
+              <textarea value={form.description} rows={5} placeholder="Cuéntanos objetivos, alcance, servidores, branding, idiomas o cualquier restriccion importante." onChange={e => setField('description', e.target.value)} className="admin-select" />
             </label>
 
             <div className="grid sm:grid-cols-2 gap-5">
@@ -2716,28 +2826,28 @@ function EnhancedQuoteForm() {
 function RecommendedPackages() {
   const pkgs = [
     {
-      name: 'Paquete MÃ³vil',
-      desc: 'Ideal para distribuidores enfocados en dispositivos mÃ³viles',
-      includes: ['Android MÃ³vil', 'iPhone y iPad', 'DiseÃ±o personalizado', 'Soporte inicial'],
+      name: 'Paquete Móvil',
+      desc: 'Ideal para distribuidores enfocados en dispositivos móviles',
+      includes: ['Android Móvil', 'iPhone y iPad', 'Diseño personalizado', 'Soporte inicial'],
       price: 'Desde US$798',
-      cta: 'Solicitar paquete mÃ³vil',
+      cta: 'Solicitar paquete móvil',
       featured: false,
       accent: '#2B7FFF',
     },
     {
       name: 'Paquete Completo',
-      desc: 'La soluciÃ³n mÃ¡s completa con presencia en todas las plataformas',
-      includes: ['Android', 'Android TV', 'iOS', 'Samsung TV', 'LG TV', 'VIDAA', 'Titan OS', 'Windows', 'Web', 'Panel de administraciÃ³n', 'Soporte prioritario'],
+      desc: 'La solución más completa con presencia en todas las plataformas',
+      includes: ['Android', 'Android TV', 'iOS', 'Samsung TV', 'LG TV', 'VIDAA', 'Titan OS', 'Windows', 'Web', 'Panel de administración', 'Soporte prioritario'],
       price: 'Desde US$2,990',
       cta: 'Solicitar paquete completo',
       featured: true,
-      badge: 'MÃ¡s completo',
+      badge: 'Más completo',
       accent: '#2B7FFF',
     },
     {
       name: 'Paquete Smart TV',
       desc: 'Enfocado en pantallas grandes y la experiencia de sala de estar',
-      includes: ['Android TV', 'Samsung TV', 'LG TV', 'DiseÃ±o para pantalla grande', 'Control remoto'],
+      includes: ['Android TV', 'Samsung TV', 'LG TV', 'Diseño para pantalla grande', 'Control remoto'],
       price: 'Desde US$1,297',
       cta: 'Solicitar paquete Smart TV',
       featured: false,
@@ -2806,11 +2916,11 @@ function RecommendedPackages() {
 
 function HowItWorks() {
   const steps = [
-    { n: '01', title: 'Selecciona las plataformas', desc: 'Elige en cuÃ¡les sistemas operativos deseas lanzar tu aplicaciÃ³n IPTV.' },
-    { n: '02', title: 'EnvÃ­a tu identidad visual', desc: 'Comparte el nombre, logo, colores y elementos de marca de tu empresa.' },
-    { n: '03', title: 'Proporciona datos IPTV', desc: 'Entregamos los datos de conexiÃ³n de tu sistema o panel IPTV para la integraciÃ³n.' },
-    { n: '04', title: 'Desarrollo y pruebas', desc: 'Desarrollamos y probamos cada aplicaciÃ³n en los dispositivos correspondientes.' },
-    { n: '05', title: 'Entrega y publicaciÃ³n', desc: 'Recibes los instaladores o iniciamos el proceso de publicaciÃ³n en las tiendas oficiales.' },
+    { n: '01', title: 'Selecciona las plataformas', desc: 'Elige en cuáles sistemas operativos deseas lanzar tu aplicación IPTV.' },
+    { n: '02', title: 'Envía tu identidad visual', desc: 'Comparte el nombre, logo, colores y elementos de marca de tu empresa.' },
+    { n: '03', title: 'Proporciona datos IPTV', desc: 'Entregamos los datos de conexión de tu sistema o panel IPTV para la integración.' },
+    { n: '04', title: 'Desarrollo y pruebas', desc: 'Desarrollamos y probamos cada aplicación en los dispositivos correspondientes.' },
+    { n: '05', title: 'Entrega y publicación', desc: 'Recibes los instaladores o iniciamos el proceso de publicación en las tiendas oficiales.' },
   ]
 
   return (
@@ -2819,10 +2929,10 @@ function HowItWorks() {
         <div className="text-center mb-16">
           <div className="section-label mb-3">Proceso</div>
           <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#0D1B3E' }}>
-            CÃ³mo funciona
+            Cómo funciona
           </h2>
           <p style={{ color: '#4A5B7A', maxWidth: 480, margin: '0 auto' }}>
-            Un proceso claro de 5 pasos desde la selecciÃ³n hasta la entrega de tu aplicaciÃ³n.
+            Un proceso claro de 5 pasos desde la selección hasta la entrega de tu aplicación.
           </p>
         </div>
 
@@ -2892,7 +3002,7 @@ function FAQ() {
         </div>
 
         <div className="mt-10 p-5 rounded-xl text-sm leading-relaxed" style={{ background: '#EEF4FF', border: '1.5px solid #C5D5F5', color: '#4A5B7A' }}>
-          <strong style={{ color: '#0D1B3E' }}>Aviso importante:</strong> La empresa desarrolla Ãºnicamente el software y la interfaz. El cliente es responsable de contar con las licencias, autorizaciones y derechos necesarios sobre el contenido que distribuye.
+          <strong style={{ color: '#0D1B3E' }}>Aviso importante:</strong> La empresa desarrolla únicamente el software y la interfaz. El cliente es responsable de contar con las licencias, autorizaciones y derechos necesarios sobre el contenido que distribuye.
         </div>
       </div>
     </section>
@@ -2951,20 +3061,20 @@ function QuoteForm() {
       estimatedTotal,
     })
     const message = [
-      `Hola, quiero una cotizaciÃ³n IPTV (${quote.id}).`,
+      `Hola, quiero una cotización IPTV (${quote.id}).`,
       `Nombre: ${submittedForm.name}`,
       `Empresa: ${submittedForm.company}`,
-      `PaÃ­s: ${submittedForm.country}`,
+      `País: ${submittedForm.country}`,
       `WhatsApp: ${submittedForm.whatsapp}`,
       `Email: ${submittedForm.email}`,
       `Plataformas: ${selectedPlatforms.map(p => p.name).join(', ') || 'Por definir'}`,
       `Total estimado: US$${estimatedTotal}`,
       `Clientes aproximados: ${submittedForm.clients || 'Por definir'}`,
       `Panel IPTV: ${submittedForm.iptv_panel || 'Por definir'}`,
-      `PublicaciÃ³n en tiendas: ${submittedForm.store_publish || 'Por definir'}`,
-      `Panel de administraciÃ³n: ${submittedForm.admin_panel || 'Por definir'}`,
+      `Publicación en tiendas: ${submittedForm.store_publish || 'Por definir'}`,
+      `Panel de administración: ${submittedForm.admin_panel || 'Por definir'}`,
       `Presupuesto: ${submittedForm.budget || 'Por definir'}`,
-      `DescripciÃ³n: ${submittedForm.description || 'Sin detalles adicionales'}`,
+      `Descripción: ${submittedForm.description || 'Sin detalles adicionales'}`,
     ].join('\n')
     setWhatsappUrl(`https://wa.me/?text=${encodeURIComponent(message)}`)
     setSent(true)
@@ -2987,8 +3097,8 @@ function QuoteForm() {
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
             </svg>
           </div>
-          <h3 className="font-display font-700 text-2xl mb-3" style={{ color: '#0D1B3E' }}>Â¡Solicitud enviada!</h3>
-          <p className="mb-6" style={{ color: '#4A5B7A' }}>Guardamos la cotizaciÃ³n en el panel admin. TambiÃ©n puedes enviarla por WhatsApp.</p>
+          <h3 className="font-display font-700 text-2xl mb-3" style={{ color: '#0D1B3E' }}>¡Solicitud enviada!</h3>
+          <p className="mb-6" style={{ color: '#4A5B7A' }}>Guardamos la cotización en el panel admin. También puedes enviarla por WhatsApp.</p>
           <a href={whatsappUrl} target="_blank" rel="noreferrer" className="btn-primary inline-block px-6 py-3 rounded-xl text-sm text-white">
             <span>Enviar por WhatsApp</span>
           </a>
@@ -3001,21 +3111,21 @@ function QuoteForm() {
     <section id="contact" className="py-24 px-6" style={{ background: '#fff' }}>
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
-          <div className="section-label mb-3">CotizaciÃ³n</div>
+          <div className="section-label mb-3">Cotización</div>
           <h2 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#0D1B3E' }}>
-            Solicita tu <span className="gradient-text">cotizaciÃ³n personalizada</span>
+            Solicita tu <span className="gradient-text">cotización personalizada</span>
           </h2>
-          <p style={{ color: '#4A5B7A' }}>Completa el formulario y recibirÃ¡s una propuesta detallada sin costo.</p>
+          <p style={{ color: '#4A5B7A' }}>Completa el formulario y recibirás una propuesta detallada sin costo.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="rounded-2xl p-8 space-y-5" style={{ background: '#fff', border: '1.5px solid #E8EEF8', boxShadow: '0 8px 32px rgba(43,127,255,0.08)' }}>
           <div className="grid sm:grid-cols-2 gap-5">
             {([
-              { label: 'Nombre completo', key: 'name', type: 'text', placeholder: 'Ej. Carlos RodrÃ­guez' },
+              { label: 'Nombre completo', key: 'name', type: 'text', placeholder: 'Ej. Carlos Rodríguez' },
               { label: 'Nombre de la empresa', key: 'company', type: 'text', placeholder: 'Ej. MiTV Solutions' },
-              { label: 'PaÃ­s', key: 'country', type: 'text', placeholder: 'Ej. MÃ©xico' },
+              { label: 'País', key: 'country', type: 'text', placeholder: 'Ej. México' },
               { label: 'WhatsApp', key: 'whatsapp', type: 'tel', placeholder: '+52 55 1234 5678' },
-              { label: 'Correo electrÃ³nico', key: 'email', type: 'email', placeholder: 'correo@empresa.com' },
+              { label: 'Correo electrónico', key: 'email', type: 'email', placeholder: 'correo@empresa.com' },
               { label: 'Clientes aproximados', key: 'clients', type: 'text', placeholder: 'Ej. 500' },
             ] satisfies { label: string; key: QuoteTextFieldKey; type: string; placeholder: string }[]).map(({ label, key, type, placeholder }) => (
               <div key={key}>
@@ -3036,7 +3146,7 @@ function QuoteForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-display font-500 mb-2.5" style={{ color: '#4A5B7A' }}>Plataformas de interÃ©s</label>
+            <label className="block text-sm font-display font-500 mb-2.5" style={{ color: '#4A5B7A' }}>Plataformas de interés</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {platforms.map(p => (
                 <label key={p.id} className="flex items-center gap-2 cursor-pointer">
@@ -3068,7 +3178,7 @@ function QuoteForm() {
           <div className="grid sm:grid-cols-2 gap-5">
             {([
               { label: 'Panel / Sistema IPTV', key: 'iptv_panel', placeholder: 'Ej. Xtream Codes, Stalker...' },
-              { label: 'Presupuesto aproximado', key: 'budget', placeholder: 'Ej. US$500 â€“ US$2,000' },
+              { label: 'Presupuesto aproximado', key: 'budget', placeholder: 'Ej. US$500 - US$2,000' },
             ] satisfies { label: string; key: QuoteTextFieldKey; placeholder: string }[]).map(({ label, key, placeholder }) => (
               <div key={key}>
                 <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>{label}</label>
@@ -3089,8 +3199,8 @@ function QuoteForm() {
 
           <div className="grid sm:grid-cols-2 gap-5">
             {([
-              { label: 'Â¿Necesita publicaciÃ³n en tiendas?', key: 'store_publish' },
-              { label: 'Â¿Necesita panel de administraciÃ³n?', key: 'admin_panel' },
+              { label: '¿Necesita publicación en tiendas?', key: 'store_publish' },
+              { label: '¿Necesita panel de administración?', key: 'admin_panel' },
             ] satisfies { label: string; key: QuoteTextFieldKey }[]).map(({ label, key }) => (
               <div key={key}>
                 <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>{label}</label>
@@ -3104,7 +3214,7 @@ function QuoteForm() {
                   onBlur={blurInput}
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="si">SÃ­</option>
+                  <option value="si">Sí</option>
                   <option value="no">No</option>
                   <option value="consultar">Consultar</option>
                 </select>
@@ -3113,11 +3223,11 @@ function QuoteForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>DescripciÃ³n del proyecto</label>
+            <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>Descripción del proyecto</label>
             <textarea
               name="description"
               rows={4}
-              placeholder="CuÃ©ntanos mÃ¡s sobre tu proyecto, tus objetivos y cualquier detalle adicional..."
+              placeholder="Cuéntanos más sobre tu proyecto, tus objetivos y cualquier detalle adicional..."
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               className="w-full rounded-xl px-4 py-2.5 text-sm outline-none resize-none transition-all"
@@ -3128,7 +3238,7 @@ function QuoteForm() {
           </div>
 
           <button type="submit" className="btn-primary w-full py-3.5 rounded-xl text-white text-base">
-            <span>Recibir cotizaciÃ³n</span>
+            <span>Recibir cotización</span>
           </button>
         </form>
       </div>
@@ -3185,7 +3295,7 @@ function AdminLogin() {
           </div>
 
           <div>
-            <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>ContraseÃ±a</label>
+            <label className="block text-sm font-display font-500 mb-1.5" style={{ color: '#4A5B7A' }}>Contraseña</label>
             <input
               type="password"
               value={password}
@@ -3229,11 +3339,11 @@ function AdminDashboard() {
 
   const platformName = (id: string) => managedPlatforms.find(p => p.id === id)?.name ?? id
   const maxQuote = Math.max(...db.quotes.map(quote => quote.estimatedTotal), 1)
-  const sidebarItems = ['Dashboard', 'Cotizaciones', 'Clientes', 'Plataformas', 'Servicios', 'Contacto', 'Reportes', 'ConfiguraciÃ³n']
+  const sidebarItems = ['Dashboard', 'Cotizaciones', 'Clientes', 'Plataformas', 'Servicios', 'Contacto', 'Reportes', 'Configuración']
   const statCards = [
     { label: 'Cotizaciones', value: totalQuotes, hint: `${pendingQuotes} nuevas por revisar`, color: '#2B7FFF' },
     { label: 'Ingresos estimados', value: `US$${totalRevenue}`, hint: 'Valor acumulado local', color: '#00A86B' },
-    { label: 'Plataformas', value: platformCount, hint: 'CatÃ¡logo disponible', color: '#7B4EFF' },
+    { label: 'Plataformas', value: platformCount, hint: 'Catálogo disponible', color: '#7B4EFF' },
     { label: 'Servicios', value: servicesCount, hint: 'Extras comerciales', color: '#F59E0B' },
   ]
 
@@ -3302,7 +3412,7 @@ function AdminDashboard() {
           </div>
           <div className="flex items-center gap-3">
             <a href="/" className="admin-ghost-button">Ver web</a>
-            <button onClick={logout} className="admin-primary-button">Cerrar sesiÃ³n</button>
+            <button onClick={logout} className="admin-primary-button">Cerrar sesión</button>
           </div>
         </header>
 
@@ -3312,7 +3422,7 @@ function AdminDashboard() {
           <section className="admin-hero-panel">
             <div>
               <h2 className="font-display font-800 text-2xl mb-2" style={{ color: '#071733' }}>Resumen general</h2>
-              <p className="text-sm" style={{ color: '#60708A' }}>Actividad local de cotizaciones, catÃ¡logo comercial y valor estimado de proyectos.</p>
+              <p className="text-sm" style={{ color: '#60708A' }}>Actividad local de cotizaciones, catálogo comercial y valor estimado de proyectos.</p>
             </div>
             <div className="admin-user-card">
               <div className="admin-avatar small">VA</div>
@@ -3341,8 +3451,8 @@ function AdminDashboard() {
             <section className="admin-panel">
               <div className="admin-panel-header">
                 <div>
-                  <h2 className="font-display font-800 text-xl" style={{ color: '#071733' }}>Valor por cotizaciÃ³n</h2>
-                  <p className="text-xs" style={{ color: '#60708A' }}>Comparativa rÃ¡pida de oportunidades</p>
+                  <h2 className="font-display font-800 text-xl" style={{ color: '#071733' }}>Valor por cotización</h2>
+                  <p className="text-xs" style={{ color: '#60708A' }}>Comparativa rápida de oportunidades</p>
                 </div>
                 <span className="admin-badge">Julio 2026</span>
               </div>
@@ -3369,7 +3479,7 @@ function AdminDashboard() {
                     <span className="admin-activity-dot" />
                     <div>
                       <p className="font-display font-700 text-sm" style={{ color: '#071733' }}>{quote.company}</p>
-                      <p className="text-xs" style={{ color: '#60708A' }}>{quote.status} Â· {quote.createdAt}</p>
+                      <p className="text-xs" style={{ color: '#60708A' }}>{quote.status} · {quote.createdAt}</p>
                     </div>
                   </div>
                 ))}
@@ -3407,7 +3517,7 @@ function AdminDashboard() {
                       <td><span className="admin-badge">{quote.status}</span></td>
                       <td className="font-display font-800" style={{ color: '#071733' }}>US${quote.estimatedTotal}</td>
                       <td>
-                        <button className="admin-icon-button" onClick={() => setSelectedQuote(quote)} aria-label="Ver detalle">â€¢â€¢â€¢</button>
+                        <button className="admin-icon-button" onClick={() => setSelectedQuote(quote)} aria-label="Ver detalle">...</button>
                       </td>
                     </tr>
                   ))}
@@ -3476,7 +3586,7 @@ function AdminDashboard() {
             <section className="admin-panel overflow-hidden">
               <div className="admin-panel-header">
                 <div>
-                  <h2 className="font-display font-800 text-xl" style={{ color: '#071733' }}>{activeModule === 'Clientes' ? 'Clientes y contactos' : 'Solicitudes de cotizaciÃ³n'}</h2>
+                  <h2 className="font-display font-800 text-xl" style={{ color: '#071733' }}>{activeModule === 'Clientes' ? 'Clientes y contactos' : 'Solicitudes de cotización'}</h2>
                   <p className="text-xs" style={{ color: '#60708A' }}>Datos recibidos desde el formulario web.</p>
                 </div>
               </div>
@@ -3509,7 +3619,7 @@ function AdminDashboard() {
                         </td>
                         <td className="font-display font-800" style={{ color: '#071733' }}>US${quote.estimatedTotal}</td>
                         <td>
-                          <button className="admin-icon-button" onClick={() => setSelectedQuote(quote)} aria-label="Ver detalle">â€¢â€¢â€¢</button>
+                          <button className="admin-icon-button" onClick={() => setSelectedQuote(quote)} aria-label="Ver detalle">...</button>
                         </td>
                       </tr>
                     ))}
@@ -3524,14 +3634,14 @@ function AdminDashboard() {
               <div className="admin-panel-header">
                 <div>
                   <h2 className="font-display font-800 text-xl" style={{ color: '#071733' }}>Datos de contacto</h2>
-                  <p className="text-xs" style={{ color: '#60708A' }}>InformaciÃ³n base para mostrar y usar en solicitudes.</p>
+                  <p className="text-xs" style={{ color: '#60708A' }}>Información base para mostrar y usar en solicitudes.</p>
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 {([
                   ['email', 'Correo comercial'],
                   ['whatsapp', 'WhatsApp'],
-                  ['country', 'PaÃ­s'],
+                  ['country', 'País'],
                   ['responseTime', 'Tiempo de respuesta'],
                 ] as [keyof LocalDb['contactSettings'], string][]).map(([key, label]) => (
                   <label key={key} className="admin-field">
@@ -3543,10 +3653,10 @@ function AdminDashboard() {
             </section>
           )}
 
-          {(activeModule === 'Reportes' || activeModule === 'ConfiguraciÃ³n') && (
+          {(activeModule === 'Reportes' || activeModule === 'Configuración') && (
             <section className="admin-panel">
               <h2 className="font-display font-800 text-xl mb-2" style={{ color: '#071733' }}>{activeModule}</h2>
-              <p className="text-sm" style={{ color: '#60708A' }}>MÃ³dulo preparado para la siguiente etapa cuando conectemos una base de datos real.</p>
+              <p className="text-sm" style={{ color: '#60708A' }}>Módulo preparado para la siguiente etapa cuando conectemos una base de datos real.</p>
             </section>
           )}
         </div>
@@ -3558,7 +3668,7 @@ function AdminDashboard() {
                   <p className="text-xs font-display font-700 uppercase tracking-[0.18em]" style={{ color: '#2B7FFF' }}>{selectedQuote.id}</p>
                   <h2 className="font-display font-800 text-2xl" style={{ color: '#071733' }}>{selectedQuote.name}</h2>
                 </div>
-                <button className="admin-icon-button" onClick={() => setSelectedQuote(null)} aria-label="Cerrar">Ã—</button>
+                <button className="admin-icon-button" onClick={() => setSelectedQuote(null)} aria-label="Cerrar">×</button>
               </div>
 
               <div className="admin-detail-grid">
@@ -3566,11 +3676,11 @@ function AdminDashboard() {
                   ['Empresa', selectedQuote.company],
                   ['Correo', selectedQuote.email],
                   ['WhatsApp', selectedQuote.whatsapp],
-                  ['PaÃ­s', selectedQuote.country],
+                  ['País', selectedQuote.country],
                   ['Clientes aproximados', selectedQuote.clients],
                   ['Panel IPTV', selectedQuote.iptv_panel],
-                  ['PublicaciÃ³n en tiendas', selectedQuote.store_publish],
-                  ['Panel de administraciÃ³n', selectedQuote.admin_panel],
+                  ['Publicación en tiendas', selectedQuote.store_publish],
+                  ['Panel de administración', selectedQuote.admin_panel],
                   ['Presupuesto', selectedQuote.budget],
                   ['Estado', selectedQuote.status],
                   ['Fecha', selectedQuote.createdAt],
@@ -3589,7 +3699,7 @@ function AdminDashboard() {
               </div>
 
               <div className="admin-detail-item mt-4">
-                <span>DescripciÃ³n del proyecto</span>
+                <span>Descripción del proyecto</span>
                 <p>{selectedQuote.description || '-'}</p>
               </div>
             </div>
@@ -3602,6 +3712,7 @@ function AdminDashboard() {
 
 function Footer() {
   const platformNames = getManagedPlatforms().map(p => p.name)
+  const contact = getContactSettings()
 
   return (
     <footer className="footer-premium">
@@ -3615,13 +3726,16 @@ function Footer() {
               Desarrollamos aplicaciones IPTV white-label para proveedores, cableoperadores y distribuidores de contenido.
             </p>
             <div className="flex gap-3 mt-5">
-              <a href="/contacto" className="px-3 py-2 rounded-lg text-xs font-display font-600 transition-all" style={{ background: 'rgba(37,211,102,0.1)', color: '#25D366', border: '1px solid rgba(37,211,102,0.2)' }}>
+              <a href={getWhatsappHref()} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg text-xs font-display font-600 transition-all" style={{ background: 'rgba(37,211,102,0.1)', color: '#25D366', border: '1px solid rgba(37,211,102,0.2)' }}>
                 WhatsApp
               </a>
-              <a href="/contacto" className="px-3 py-2 rounded-lg text-xs font-display font-600 transition-all" style={{ border: '1px solid rgba(43,127,255,0.4)', color: '#5599FF' }}>
+              <a href={getMailHref()} className="px-3 py-2 rounded-lg text-xs font-display font-600 transition-all" style={{ border: '1px solid rgba(43,127,255,0.4)', color: '#5599FF' }}>
                 Email
               </a>
             </div>
+            <p className="mt-4 text-xs leading-relaxed" style={{ color: '#91A4C6' }}>
+              {contact.email}<br />{contact.whatsapp}<br />{contact.country} · respuesta en {contact.responseTime}
+            </p>
           </div>
 
           <div>
@@ -3636,7 +3750,7 @@ function Footer() {
           <div>
             <h4 className="font-display font-700 text-white text-sm mb-4">Servicios</h4>
             <ul className="space-y-2">
-              {['PublicaciÃ³n en tiendas', 'Panel de administraciÃ³n', 'Notificaciones push', 'Hosting', 'Mantenimiento', 'DiseÃ±o exclusivo'].map(s => (
+              {['Publicación en tiendas', 'Panel de administración', 'Notificaciones push', 'Hosting', 'Mantenimiento', 'Diseño exclusivo'].map(s => (
                 <li key={s}><a href="/contacto" className="text-sm transition-colors" style={{ color: '#7A8BAA' }}>{s}</a></li>
               ))}
             </ul>
@@ -3662,23 +3776,23 @@ function Footer() {
 
         <div className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-4" style={{ borderTop: '1px solid rgba(43,127,255,0.1)' }}>
           <p className="text-xs" style={{ color: '#91A4C6' }}>
-            Â© 2026 VAELO. Todos los derechos reservados.
+            © 2026 VAELO. Todos los derechos reservados.
           </p>
           <div className="flex gap-5">
-            {['PolÃ­tica de privacidad', 'TÃ©rminos y condiciones'].map(l => (
+            {['Política de privacidad', 'Términos y condiciones'].map(l => (
               <a key={l} href="/contacto" className="text-xs transition-colors" style={{ color: '#B8C8E6' }}>{l}</a>
             ))}
           </div>
         </div>
         <p className="text-xs mt-5 leading-relaxed" style={{ color: '#91A4C6', maxWidth: 880 }}>
-          Aviso legal: VAELO desarrolla exclusivamente el software y la interfaz de las aplicaciones. El cliente es el Ãºnico responsable de obtener y mantener las licencias, autorizaciones y derechos legales sobre el contenido que distribuye, asÃ­ como del cumplimiento de la legislaciÃ³n aplicable en materia de derechos de autor y propiedad intelectual en su jurisdicciÃ³n.
+          Aviso legal: VAELO desarrolla exclusivamente el software y la interfaz de las aplicaciones. El cliente es el único responsable de obtener y mantener las licencias, autorizaciones y derechos legales sobre el contenido que distribuye, así como del cumplimiento de la legislación aplicable en materia de derechos de autor y propiedad intelectual en su jurisdicción.
         </p>
       </div>
     </footer>
   )
 }
 
-// â”€â”€â”€ App â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// App
 
 const ROUTES: Record<string, React.ReactElement> = {
   '/': <HomePage />,
@@ -3699,13 +3813,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/': 'VAELO | Aplicaciones IPTV white-label',
   '/plataformas': 'Plataformas | VAELO',
   '/precios': 'Precios | VAELO',
-  '/comparacion': 'ComparaciÃ³n | VAELO',
-  '/personalizacion': 'PersonalizaciÃ³n | VAELO',
+  '/comparacion': 'Comparación | VAELO',
+  '/personalizacion': 'Personalización | VAELO',
   '/servicios': 'Servicios | VAELO',
   '/paquetes': 'Paquetes | VAELO',
   '/proceso': 'Proceso | VAELO',
   '/faq': 'FAQ | VAELO',
-  '/contacto': 'CotizaciÃ³n | VAELO',
+  '/contacto': 'Cotización | VAELO',
   '/admin/login': 'Login Admin | VAELO',
   '/admin': 'Panel Admin | VAELO',
 }
@@ -3729,7 +3843,7 @@ function getPageTitle(pathname: string) {
     const platform = slug ? getPlatformBySlug(slug) : undefined
     if (platform) return `${platform.name} | VAELO`
   }
-  return 'PÃ¡gina no encontrada | VAELO'
+  return 'Página no encontrada | VAELO'
 }
 
 function NotFound() {
@@ -3738,7 +3852,7 @@ function NotFound() {
       <div className="max-w-xl mx-auto">
         <div className="section-label mb-3">404</div>
         <h1 className="font-display font-800 mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#0D1B3E' }}>
-          PÃ¡gina no encontrada
+          Página no encontrada
         </h1>
         <p className="mb-8" style={{ color: '#4A5B7A' }}>
           La URL que intentas abrir no existe dentro de VAELO.
@@ -3819,7 +3933,17 @@ export default function App() {
     <div className={`min-h-screen ${isAdminPage ? '' : 'vaelo-app-shell'}`} style={{ color: '#0D1B3E' }}>
       {!isAdminPage && <Navbar />}
       {page}
+      {!isAdminPage && <MobileConversionBar />}
       {!isAdminPage && <Footer />}
+    </div>
+  )
+}
+
+function MobileConversionBar() {
+  return (
+    <div className="mobile-conversion-bar">
+      <a href="/precios" className="mobile-conversion-secondary">Ver precios</a>
+      <a href={getWhatsappHref()} target="_blank" rel="noreferrer" className="mobile-conversion-primary">Cotizar ahora</a>
     </div>
   )
 }
