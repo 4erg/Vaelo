@@ -57,4 +57,4 @@ Desde el panel se pueden revisar solicitudes, cambiar estados, editar precios de
 VAELO desarrolla únicamente el software y la interfaz de las aplicaciones. El cliente es responsable de contar con licencias, permisos y derechos sobre el contenido que distribuye en sus servicios IPTV.
 
 
-prueba de despliege automatico 
+prueba de despliege automatico zd
