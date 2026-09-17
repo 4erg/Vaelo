@@ -1,4 +1,4 @@
-name: Deploy VAELO
+name: VA ELO Push Notification
 
 on:
   push:
@@ -6,17 +6,11 @@ on:
       - main
 
 jobs:
-  deploy:
+  notify:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Activar deploy en EasyPanel
-        run: |
-          curl --fail --request POST \
-            "${{ secrets.EASYPANEL_DEPLOY_URL }}"
-
       - name: Avisar por Telegram
-        if: success()
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -29,17 +23,14 @@ jobs:
           SHORT_SHA="${COMMIT_SHA:0:7}"
 
           curl --fail --request POST \
-            "https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto" \
+            "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${CHAT_ID}" \
-            --data-urlencode "photo=https://fastnetperu-vaelo.7xqmvz.easypanel.host/imgs/vaelo_icono.png" \
             --data-urlencode "parse_mode=HTML" \
-            --data-urlencode "caption=🚀 <b>Nuevo despliegue de VAELO</b>
-
-          ✅ EasyPanel recibió la orden de despliegue.
+            --data-urlencode "text=🚀 <b>Nuevo push de VAELO</b>
 
           📦 <b>Repositorio:</b> ${REPOSITORY}
           🌿 <b>Rama:</b> ${BRANCH}
-          🔖 <b>Commit:</b> <code>${SHORT_SHA}</code>
+          📌 <b>Commit:</b> <code>${SHORT_SHA}</code>
           👤 <b>Autor:</b> ${AUTHOR}
 
           📝 <b>Cambios:</b>
