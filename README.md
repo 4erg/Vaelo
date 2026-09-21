@@ -55,3 +55,6 @@ Desde el panel se pueden revisar solicitudes, cambiar estados, editar precios de
 ## Nota Comercial
 
 VAELO desarrolla únicamente el software y la interfaz de las aplicaciones. El cliente es responsable de contar con licencias, permisos y derechos sobre el contenido que distribuye en sus servicios IPTV.
+
+
+hol er 

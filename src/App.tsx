@@ -1023,14 +1023,14 @@ function StrongHero() {
         <div className="grid lg:grid-cols-[0.44fr_0.56fr] gap-12 xl:gap-16 items-center">
           <div className="hero-copy-column">
             <div className="section-label mb-5 hero-kicker">Soluciones IPTV White-Label</div>
-            <h1 className="font-display font-800 leading-[1.04] mb-6 hero-title hero-title-balance" style={{ fontSize: 'clamp(2rem, 4.35vw, 3.55rem)', color: '#09162D' }}>
+            <h1 className="font-display font-800 leading-[1.04] mb-6 hero-title hero-title-balance" style={{ fontSize: 'clamp(2rem, 4.35vw, 3.55rem)', color: '#F3F8FF' }}>
               Tu propia aplicación IPTV
               <br />
               para <span className="hero-title-highlight">televisores,</span>
               <br />
               <span className="hero-title-highlight">celulares y computadoras</span>
             </h1>
-            <p className="text-[1.05rem] mb-8 leading-relaxed hero-copy hero-copy-width" style={{ color: '#425370' }}>
+            <p className="text-[1.05rem] mb-8 leading-relaxed hero-copy hero-copy-width" style={{ color: '#C6D7F4' }}>
               Desarrollamos aplicaciones personalizadas con el nombre, logotipo, colores y funciones de tu empresa. Elige las plataformas que necesitas y construye una solución adaptada a tu negocio.
             </p>
             <div className="hero-signal-strip hero-copy">
@@ -1051,7 +1051,7 @@ function StrongHero() {
             </div>
             <div className="hero-trust-row">
               <span className="hero-trust-dot" />
-              <p style={{ color: '#465A78' }}>Cotización orientada a operadores, ISPs, cableoperadores y marcas IPTV privadas.</p>
+              <p style={{ color: '#B8C9E8' }}>Cotización orientada a operadores, ISPs, cableoperadores y marcas IPTV privadas.</p>
             </div>
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mt-8 hero-stats">
               {heroStats.map(item => (
